@@ -5,6 +5,19 @@ from bs4 import BeautifulSoup
 FUNPAY_URL = "https://funpay.ru/"
 
 
+def get_ads(game='chips/2'):
+    req = connect_to(game)
+    soup = BeautifulSoup(req.content, 'lxml')
+    ads_table = soup.find('div', class_='tc table-hover table-clickable showcase-table tc-sortable tc-lazyload')
+    ads = ads_table.find_all('a', class_='tc-item')
+    for i in ads:
+        price = i.find('div', class_='tc-price').find('div').next_element.replace(' ','')
+        amount = i.find('div', class_='tc-amount').next
+        name = i.find('div', class_='media-user-name').text
+        print(price, amount, name)
+    print('Total:', len(ads))
+
+
 def connect_to(target: str) -> requests.Response:
     session = requests.Session()
     headers = {

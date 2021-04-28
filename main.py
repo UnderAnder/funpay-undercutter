@@ -2,7 +2,7 @@ import parser
 
 
 def main():
-    parser.get_min_price()
+    parser.get_ads()
 
 
 if __name__ == "__main__":
