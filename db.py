@@ -38,7 +38,7 @@ class Ad(Base):
     __tablename__ = 'ad'
     id = Column(Integer, primary_key=True)
     game_id = Column(Integer, ForeignKey('game.id'))
-    server_id = Column(Integer, ForeignKey('server.id'))
+    server_id = Column(Integer, ForeignKey('server.server_id'))
     seller = Column(String(50))
     side = Column(Integer)
     price = Column(Integer)
