@@ -3,12 +3,11 @@ from bs4 import BeautifulSoup
 
 import db
 
-FUNPAY_URL = "https://funpay.ru/"
 session = requests.Session()
 
 
-def get_ads_for(game='chips/2/'):
-    print(f'Loading data from {FUNPAY_URL}{game}')
+def get_ads_for(game: db.Game):
+    print('Loading data from', game.chips_url)
     req = connect_to(game)
     soup = BeautifulSoup(req.content, 'lxml')
     ads_table = soup.find('div', class_='tc table-hover table-clickable showcase-table tc-sortable tc-lazyload')
@@ -31,9 +30,25 @@ def get_ads_for(game='chips/2/'):
     print('Total:', len(ads))
 
 
+def populate_servers(game: db.Game):
+    print(game)
+    print('Loading servers names from', game.chips_url)
+    req = connect_to(game.chips_url)
+    soup = BeautifulSoup(req.content, 'lxml')
+    ads_table = soup.find('div', class_='tc table-hover table-clickable showcase-table tc-sortable tc-lazyload')
+    ads = ads_table.find_all('a', class_='tc-item')
+    for ad in ads:
+        server_id = ad["data-server"]
+        server_name = ad.find('div', class_='tc-server').text
+        server = db.Server(server_id=server_id, game_id=game.id, name=server_name)
+        db.session.add(server)
+    db.session.commit()
+
+
 def populate_games():
-    print(f'Get games list from {FUNPAY_URL}')
-    req = connect_to()
+    funpay_url = "https://funpay.ru/"
+    print(f'Get games list from {funpay_url}')
+    req = connect_to(funpay_url)
     soup = BeautifulSoup(req.content, 'lxml')
     game_items = soup.find_all('div', class_='promo-game-item')
     for item in game_items:
@@ -47,6 +62,7 @@ def populate_games():
                 chips_url = game['href']
                 row = db.Game(id=game_id, name=game_name, chips_url=chips_url)
                 db.session.add(row)
+
     db.session.commit()
 
 
@@ -62,14 +78,14 @@ def connect_to(target: str = None) -> requests.Response:
         'dnt': '1',
         'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
         'sec-fetch-site': 'none',
-        'referer': FUNPAY_URL,
+        'referer': target,
         'accept-encoding': 'gzip, deflate, br',
         'accept-language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
     }
-    req = session.get(f"{FUNPAY_URL}{target if target else ''}", headers=headers)
+    req = session.get(target, headers=headers)
 
     if not req:
-        print(f"Unable to connect to {FUNPAY_URL}{target}")
+        print(f"Unable to connect to {target}")
         exit()
 
     return req
