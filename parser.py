@@ -7,14 +7,15 @@ session = requests.Session()
 
 
 def get_ads_for(game: db.Game):
+    ads_set = set()
     print('Loading data from', game.chips_url)
     req = connect_to(game)
     soup = BeautifulSoup(req.content, 'lxml')
     ads_table = soup.find('div', class_='tc table-hover table-clickable showcase-table tc-sortable tc-lazyload')
     ads = ads_table.find_all('a', class_='tc-item')
     for ad in ads:
-        server = ad["data-server"]
-        side = ad["data-side"]
+        server_id = int(ad["data-server"])
+        side = int(ad["data-side"])
         try:
             online = bool(ad["data-online"])
         except KeyError:
@@ -23,14 +24,16 @@ def get_ads_for(game: db.Game):
         price = int(float(price) * 100)
         amount = int(ad.find('div', class_='tc-amount').next.replace(' ', ''))
         name = ad.find('div', class_='media-user-name').text
-        ad = db.Ad(game_id=2, server_id=server, seller=name, side=side, price=price, amount=amount, online=online)
-        db.session.add(ad)
-    db.session.commit()
-    db.session.close()
+        ad = db.Ad(game_id=game.id, server_id=server_id, seller=name, side=side, price=price, amount=amount,
+                   online=online)
+        ads_set.add(ad)
+    with db.Session.begin() as s:
+        s.bulk_save_objects(ads_set)
     print('Total:', len(ads))
 
 
 def populate_servers(game: db.Game):
+    servers_set = set()
     print(game)
     print('Loading servers names from', game.chips_url)
     req = connect_to(game.chips_url)
@@ -38,14 +41,19 @@ def populate_servers(game: db.Game):
     ads_table = soup.find('div', class_='tc table-hover table-clickable showcase-table tc-sortable tc-lazyload')
     ads = ads_table.find_all('a', class_='tc-item')
     for ad in ads:
-        server_id = ad["data-server"]
+        try:
+            server_id = int(ad["data-server"])
+        except ValueError:
+            continue
         server_name = ad.find('div', class_='tc-server').text
-        server = db.Server(server_id=server_id, game_id=game.id, name=server_name)
-        db.session.add(server)
-    db.session.commit()
+        server = db.Server(id=server_id, game_id=game.id, name=server_name)
+        servers_set.add(server)
+    with db.Session.begin() as s:
+        s.bulk_save_objects(servers_set)
 
 
 def populate_games():
+    games_set = set()
     funpay_url = "https://funpay.ru/"
     print(f'Get games list from {funpay_url}')
     req = connect_to(funpay_url)
@@ -61,9 +69,9 @@ def populate_games():
                 game_name = f'{game.text} {regions[i].text}' if len(regions) > 0 else game.text
                 chips_url = game['href']
                 row = db.Game(id=game_id, name=game_name, chips_url=chips_url)
-                db.session.add(row)
-
-    db.session.commit()
+                games_set.add(row)
+    with db.Session.begin() as s:
+        s.bulk_save_objects(games_set)
 
 
 def connect_to(target: str = None) -> requests.Response:
