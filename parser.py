@@ -8,14 +8,16 @@ session = requests.Session()
 
 def get_ads_for(game: db.Game):
     ads_set = set()
-    print('Loading data from', game.chips_url)
-    req = connect_to(game)
+    print('Loading ads from', game.chips_url)
+    req = connect_to(game.chips_url)
     soup = BeautifulSoup(req.content, 'lxml')
     ads_table = soup.find('div', class_='tc table-hover table-clickable showcase-table tc-sortable tc-lazyload')
     ads = ads_table.find_all('a', class_='tc-item')
     for ad in ads:
-        server_id = int(ad["data-server"])
-        side = int(ad["data-side"])
+        server_id = ad["data-server"]
+        server_id = 0 if server_id == '*' else int(server_id)
+        side = ad["data-side"]
+        side = 0 if side == '*' else int(side)
         try:
             online = bool(ad["data-online"])
         except KeyError:
@@ -28,6 +30,8 @@ def get_ads_for(game: db.Game):
                    online=online)
         ads_set.add(ad)
     with db.Session.begin() as s:
+        drop = db.delete(db.Ad).where(db.Ad.game_id == game.id)
+        s.execute(drop)
         s.bulk_save_objects(ads_set)
     print('Total:', len(ads))
 
@@ -41,10 +45,8 @@ def populate_servers(game: db.Game):
     ads_table = soup.find('div', class_='tc table-hover table-clickable showcase-table tc-sortable tc-lazyload')
     ads = ads_table.find_all('a', class_='tc-item')
     for ad in ads:
-        try:
-            server_id = int(ad["data-server"])
-        except ValueError:
-            continue
+        server_id = ad["data-server"]
+        server_id = 0 if server_id == '*' else int(server_id)
         server_name = ad.find('div', class_='tc-server').text
         server = db.Server(id=server_id, game_id=game.id, name=server_name)
         servers_set.add(server)

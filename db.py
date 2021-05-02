@@ -1,6 +1,6 @@
 from typing import Union
 
-from sqlalchemy import Integer, Column, String, Boolean, create_engine, ForeignKey, select
+from sqlalchemy import Integer, Column, String, Boolean, create_engine, ForeignKey, select, delete
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 
@@ -65,12 +65,15 @@ class Ad(Base):
     game = relationship("Game", back_populates="ads")
     server = relationship("Server", back_populates="ads")
 
+    def __key(self):
+        return self.server_id, self.seller, self.side
+
     def __hash__(self):
-        return hash(self.id)
+        return hash(self.__key())
 
     def __eq__(self, other):
         if isinstance(other, Ad):
-            return self.id == other.id
+            return self.__key() == other.__key()
         return NotImplemented
 
     def __repr__(self):
