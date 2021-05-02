@@ -1,3 +1,5 @@
+from typing import Union
+
 from sqlalchemy import Integer, Column, String, Boolean, create_engine, ForeignKey, select
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
@@ -79,15 +81,27 @@ class Ad(Base):
 Base.metadata.create_all(engine)
 
 
-def check_table_fill(table):
-    stmt = f'select * from {table}'
+def check_table_fill(table: str, related: tuple = None) -> bool:
+    stmt = f'select * from {table} where {related[0]}={related[1]}' if related else f'select * from {table}'
     with Session() as s:
-        if s.execute(stmt).first():
-            return True
-        return False
+        if not s.execute(stmt).first():
+            return False
+        return True
 
 
-def get_game_by_name(name: str):
+def get_game_by_name(name: str) -> Union[bool, Game]:
     stmt = select(Game).where(Game.name == name)
     with Session() as s:
-        return s.execute(stmt).first()
+        game = s.execute(stmt).first()
+        if not game:
+            return False
+        return game[0]
+
+
+def get_server_by_name(name: str, game_id: int) -> Union[bool, Game]:
+    stmt = select(Server).filter_by(name=name, game_id=game_id)
+    with Session() as s:
+        server = s.execute(stmt).first()
+        if not server:
+            return False
+        return server[0]
