@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, Column, String, Boolean, create_engine, ForeignKey
+from sqlalchemy import Integer, Column, String, Boolean, create_engine, ForeignKey, select
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, Session
 
@@ -54,3 +54,9 @@ class Ad(Base):
 
 
 Base.metadata.create_all(engine)
+
+
+def get_game_by_name(name: str):
+    stmt = select(Game).where(Game.name == name)
+    with session as s:
+        return s.execute(stmt).first()
