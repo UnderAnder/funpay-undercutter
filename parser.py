@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import db
 
 FUNPAY_URL = "https://funpay.ru/"
+session = requests.Session()
 
 
 def get_ads_for(game='chips/2/'):
@@ -30,8 +31,26 @@ def get_ads_for(game='chips/2/'):
     print('Total:', len(ads))
 
 
-def connect_to(target: str) -> requests.Response:
-    session = requests.Session()
+def populate_games():
+    print(f'Get games list from {FUNPAY_URL}')
+    req = connect_to()
+    soup = BeautifulSoup(req.content, 'lxml')
+    game_items = soup.find_all('div', class_='promo-game-item')
+    for item in game_items:
+        titles = item.find_all('div', class_='game-title')
+        regions = item.find_all('button', class_='btn')
+        for i, title in enumerate(titles):
+            game = title.find('a')
+            if game['href'].find('chips') != -1:
+                game_id = title["data-id"]
+                game_name = f'{game.text} {regions[i].text}' if len(regions) > 0 else game.text
+                chips_url = game['href']
+                row = db.Game(id=game_id, name=game_name, chips_url=chips_url)
+                db.session.add(row)
+    db.session.commit()
+
+
+def connect_to(target: str = None) -> requests.Response:
     headers = {
         'authority': 'funpay.ru',
         'cache-control': 'max-age=0',
@@ -47,10 +66,10 @@ def connect_to(target: str) -> requests.Response:
         'accept-encoding': 'gzip, deflate, br',
         'accept-language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
     }
-    req = session.get(f"{FUNPAY_URL}{target}", headers=headers)
+    req = session.get(f"{FUNPAY_URL}{target if target else ''}", headers=headers)
 
     if not req:
-        print(f"Sorry, unable to connect to Funpay")
+        print(f"Unable to connect to {FUNPAY_URL}{target}")
         exit()
 
     return req

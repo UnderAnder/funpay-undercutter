@@ -11,7 +11,7 @@ class Game(Base):
     __tablename__ = 'game'
     id = Column(Integer, primary_key=True)
     name = Column(String(50))
-    url = Column(String(50))
+    chips_url = Column(String(50))
 
     servers = relationship("Server", back_populates="game")
     ads = relationship("Ad", back_populates="game")
