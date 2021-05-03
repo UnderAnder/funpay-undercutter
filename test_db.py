@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from db import Ad, Server, Game, Base, get_ads_by_server
+from db import Ad, Server, Game, Base, get_ads_by_server, get_server_by_name
 
 
 @pytest.fixture(scope='function')
@@ -21,7 +21,7 @@ def dataset(setup_database):
 
     game1 = Game(id=2, name='World of Warcraft', chips_url='http://example.com/2')
     game2 = Game(id=1, name='Lineage 2', chips_url='http://example.com/1')
-    server1 = Server(id=111, game_id=2, name='Azuregos')
+    server1 = Server(id=111, game_id=2, name='Азурегос')
     server2 = Server(id=112, game_id=2, name='Soulflayer')
     server3 = Server(id=20, game_id=1, name='Adena')
     ad1 = Ad(id=1, game_id=2, server_id=111, seller='Charles Dodgeson',
@@ -74,3 +74,12 @@ def test_get_ads_by_server(dataset):
     assert len(azuregos) == 3
     assert len(adena) == 1
     assert not_exist is None
+
+
+def test_get_server_by_name(dataset):
+    azuregos = dataset.query(Server).where(Server.id == 111)[0]
+    azuregos_by_name = get_server_by_name('Азурегос', 2, dataset)
+    not_existing_server = get_server_by_name('NOTEX1ST', 2, dataset)
+
+    assert azuregos is azuregos_by_name
+    assert not_existing_server is None
