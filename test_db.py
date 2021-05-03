@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from db import Ad, Server, Game, Base, get_ads_by_server, get_server_by_name, get_game_by_name, check_table_fill
+from db import Ad, Server, Game, Base, get_ads_by_server, get_server_by_name, get_game_by_name, check_records_filled
 
 
 @pytest.fixture(scope='function')
@@ -95,9 +95,9 @@ def test_get_game_by_name(dataset):
     assert not_existing_game is None
 
 
-def test_check_table_fill(dataset):
-    fill_table = check_table_fill('Ad', session=dataset)
-    empty_table = check_table_fill('Ad', ('server_id', 113), dataset)
+def test_check_records_filled(dataset):
+    fill_table = check_records_filled('Ad', session=dataset)
+    empty_table = check_records_filled('Ad', ('server_id', 113), dataset)
 
     assert fill_table is True
     assert empty_table is False

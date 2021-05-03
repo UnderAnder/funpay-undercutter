@@ -84,7 +84,7 @@ class Ad(Base):
 Base.metadata.create_all(engine)
 
 
-def check_table_fill(table: str, related: tuple = None, session: Session = Session) -> bool:
+def check_records_filled(table: str, related: tuple = None, session: Session = Session) -> bool:
     stmt = f'select * from {table} where {related[0]}={related[1]}' if related else f'select * from {table}'
     with session as s:
         if not s.execute(stmt).first():
