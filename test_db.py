@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from db import Ad, Server, Game, Base, get_ads_by_server, get_server_by_name
+from db import Ad, Server, Game, Base, get_ads_by_server, get_server_by_name, get_game_by_name
 
 
 @pytest.fixture(scope='function')
@@ -83,3 +83,12 @@ def test_get_server_by_name(dataset):
 
     assert azuregos is azuregos_by_name
     assert not_existing_server is None
+
+
+def test_get_game_by_name(dataset):
+    wow = dataset.query(Game).where(Game.id == 2)[0]
+    wow_by_name = get_game_by_name('World of Warcraft', dataset)
+    not_existing_game = get_game_by_name('NOTEX1ST', dataset)
+
+    assert wow is wow_by_name
+    assert not_existing_game is None
