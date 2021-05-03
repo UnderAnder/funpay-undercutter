@@ -6,7 +6,7 @@ from sqlalchemy.orm import relationship, sessionmaker
 
 Base = declarative_base()
 engine = create_engine('sqlite+pysqlite:///app.db', echo=True, future=True)
-Session = sessionmaker(engine, future=True)
+Session = sessionmaker(engine, future=True)()
 
 
 class Game(Base):
@@ -86,7 +86,7 @@ Base.metadata.create_all(engine)
 
 def check_table_fill(table: str, related: tuple = None, session: Session = Session) -> bool:
     stmt = f'select * from {table} where {related[0]}={related[1]}' if related else f'select * from {table}'
-    with session() as s:
+    with session as s:
         if not s.execute(stmt).first():
             return False
         return True
@@ -94,7 +94,7 @@ def check_table_fill(table: str, related: tuple = None, session: Session = Sessi
 
 def get_game_by_name(name: str, session: Session = Session) -> Union[None, Game]:
     stmt = select(Game).where(Game.name == name)
-    with session() as s:
+    with session as s:
         game = s.execute(stmt).first()
         if not game:
             return None
@@ -103,7 +103,7 @@ def get_game_by_name(name: str, session: Session = Session) -> Union[None, Game]
 
 def get_server_by_name(name: str, game_id: int, session: Session = Session) -> Union[None, Server]:
     stmt = select(Server).filter_by(name=name, game_id=game_id)
-    with session() as s:
+    with session as s:
         server = s.execute(stmt).first()
         if not server:
             return None
@@ -112,7 +112,7 @@ def get_server_by_name(name: str, game_id: int, session: Session = Session) -> U
 
 def get_ads_by_server(server_id: int, session: Session = Session) -> Union[None, List[Ad]]:
     stmt = select(Ad).filter_by(server_id=server_id)
-    with session() as s:
+    with session as s:
         ads = s.execute(stmt).all()
         if not ads:
             return None
