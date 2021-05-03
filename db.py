@@ -77,8 +77,8 @@ class Ad(Base):
         return NotImplemented
 
     def __repr__(self):
-        return f"Ad(id={self.id!r}, seller={self.seller!r}, side={self.side!r}, price={self.price!r}," \
-               f" amount={self.amount!r}), online={self.online!r}"
+        return f"Ad(server_id={self.server_id!r}, seller={self.seller!r}, side={self.side!r}, price={self.price!r}, " \
+               f"amount={self.amount!r}, online={self.online!r})"
 
 
 Base.metadata.create_all(engine)
@@ -101,10 +101,19 @@ def get_game_by_name(name: str) -> Union[bool, Game]:
         return game[0]
 
 
-def get_server_by_name(name: str, game_id: int) -> Union[bool, Game]:
+def get_server_by_name(name: str, game_id: int) -> Union[bool, Server]:
     stmt = select(Server).filter_by(name=name, game_id=game_id)
     with Session() as s:
         server = s.execute(stmt).first()
         if not server:
             return False
         return server[0]
+
+
+def get_ads_by_server(server_id: int) -> Union[bool, list]:
+    stmt = select(Ad).filter_by(server_id=server_id)
+    with Session() as s:
+        ads = s.execute(stmt).all()
+        if not ads:
+            return False
+        return ads
