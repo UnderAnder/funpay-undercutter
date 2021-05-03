@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from db import Ad, Server, Game, Base, get_ads_by_server, get_server_by_name, get_game_by_name
+from db import Ad, Server, Game, Base, get_ads_by_server, get_server_by_name, get_game_by_name, check_table_fill
 
 
 @pytest.fixture(scope='function')
@@ -26,7 +26,8 @@ def dataset(setup_database):
     server3 = Server(id=20, game_id=1, name='Adena')
     ad1 = Ad(id=1, game_id=2, server_id=111, seller='Charles Dodgeson',
              side=1, price=130, amount=100000, online=0)
-    ad2 = Ad(id=2, game_id=2, server_id=112, seller='Charles Dodgeson',
+    # server not exist
+    ad2 = Ad(id=2, game_id=2, server_id=404, seller='Charles Dodgeson',
              side=0, price=140, amount=100000, online=1)
     ad3 = Ad(id=3, game_id=1, server_id=20, seller='Charles Dodgeson',
              side=2, price=150, amount=100000, online=0)
@@ -92,3 +93,11 @@ def test_get_game_by_name(dataset):
 
     assert wow is wow_by_name
     assert not_existing_game is None
+
+
+def test_check_table_fill(dataset):
+    fill_table = check_table_fill('Ad', session=dataset)
+    empty_table = check_table_fill('Ad', ('server_id', 113), dataset)
+
+    assert fill_table is True
+    assert empty_table is False
