@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from db import Ad, Server, Game, Base
+from db import Ad, Server, Game, Base, get_ads_by_server
 
 
 @pytest.fixture(scope='function')
@@ -33,7 +33,7 @@ def dataset(setup_database):
     # same hash as ad1
     ad4 = Ad(id=4, game_id=2, server_id=111, seller='Charles Dodgeson',
              side=1, price=130, amount=100000, online=0)
-    # other side
+    # as ad1 but other side
     ad5 = Ad(id=5, game_id=2, server_id=111, seller='Charles Dodgeson',
              side=0, price=130, amount=100000, online=0)
 
@@ -64,3 +64,13 @@ def test_database(dataset):
     assert len(dataset.query(Game).all()) == 2
     assert len(dataset.query(Server).all()) == 3
     assert len(dataset.query(Ad).all()) == 5
+
+
+def test_get_ads_by_server(dataset):
+    azuregos = get_ads_by_server(111, dataset)
+    adena = get_ads_by_server(112, dataset)
+    not_exist = get_ads_by_server(1, dataset)
+
+    assert len(azuregos) == 3
+    assert len(adena) == 1
+    assert not_exist is None
