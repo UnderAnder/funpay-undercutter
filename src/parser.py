@@ -1,14 +1,52 @@
+from typing import List
+
 import requests
 from bs4 import BeautifulSoup
 
 import db
 
-session = requests.Session()
+
+def get_games() -> List[dict]:
+    result = list()
+    funpay_url = "https://funpay.ru/"
+    print(f'Get games list from {funpay_url}')
+    req = connect_to(funpay_url)
+    soup = BeautifulSoup(req.content, 'lxml')
+    game_items = soup.find_all('div', class_='promo-game-item')
+    for item in game_items:
+        titles = item.find_all('div', class_='game-title')
+        regions = item.find_all('button', class_='btn')
+        for i, title in enumerate(titles):
+            game = title.find('a')
+            if game['href'].find('chips') != -1:
+                game_id = title["data-id"]
+                game_name = f'{game.text} {regions[i].text}' if len(regions) > 0 else game.text
+                chips_url = game['href']
+                result.append({'id': game_id, 'name': game_name, 'chips_url': chips_url})
+    return result
 
 
-def get_ads_for(game: db.Game):
-    ads_set = set()
+def get_servers_for(game: db.Game) -> List[dict]:
+    result = list()
+    tmp = list()
+    print('Loading servers names from', game.chips_url)
+    req = connect_to(game.chips_url)
+    soup = BeautifulSoup(req.content, 'lxml')
+    ads_table = soup.find('div', class_='tc table-hover table-clickable showcase-table tc-sortable tc-lazyload')
+    ads = ads_table.find_all('a', class_='tc-item')
+    for ad in ads:
+        server_id = ad["data-server"]
+        server_id = 0 if server_id == '*' else int(server_id)
+        if server_id not in tmp:
+            tmp.append(server_id)
+            server_name = ad.find('div', class_='tc-server').text
+            result.append({'id': server_id, 'game_id': game.id, 'name': server_name})
+    return result
+
+
+def get_ads_for(game: db.Game) -> List[dict]:
     print('Loading ads from', game.chips_url)
+    result = list()
     req = connect_to(game.chips_url)
     soup = BeautifulSoup(req.content, 'lxml')
     ads_table = soup.find('div', class_='tc table-hover table-clickable showcase-table tc-sortable tc-lazyload')
@@ -26,57 +64,13 @@ def get_ads_for(game: db.Game):
         price = int(float(price) * 100)
         amount = int(ad.find('div', class_='tc-amount').next.replace(' ', ''))
         name = ad.find('div', class_='media-user-name').text
-        ad = db.Ad(game_id=game.id, server_id=server_id, seller=name, side=side, price=price, amount=amount,
-                   online=online)
-        ads_set.add(ad)
-    with db.Session.begin() as s:
-        drop = db.delete(db.Ad).where(db.Ad.game_id == game.id)
-        s.execute(drop)
-        s.bulk_save_objects(ads_set)
-    print('Total:', len(ads))
-
-
-def populate_servers(game: db.Game):
-    servers_set = set()
-    print(game)
-    print('Loading servers names from', game.chips_url)
-    req = connect_to(game.chips_url)
-    soup = BeautifulSoup(req.content, 'lxml')
-    ads_table = soup.find('div', class_='tc table-hover table-clickable showcase-table tc-sortable tc-lazyload')
-    ads = ads_table.find_all('a', class_='tc-item')
-    for ad in ads:
-        server_id = ad["data-server"]
-        server_id = 0 if server_id == '*' else int(server_id)
-        server_name = ad.find('div', class_='tc-server').text
-        server = db.Server(id=server_id, game_id=game.id, name=server_name)
-        servers_set.add(server)
-    with db.Session.begin() as s:
-        s.bulk_save_objects(servers_set)
-
-
-def populate_games():
-    games_set = set()
-    funpay_url = "https://funpay.ru/"
-    print(f'Get games list from {funpay_url}')
-    req = connect_to(funpay_url)
-    soup = BeautifulSoup(req.content, 'lxml')
-    game_items = soup.find_all('div', class_='promo-game-item')
-    for item in game_items:
-        titles = item.find_all('div', class_='game-title')
-        regions = item.find_all('button', class_='btn')
-        for i, title in enumerate(titles):
-            game = title.find('a')
-            if game['href'].find('chips') != -1:
-                game_id = title["data-id"]
-                game_name = f'{game.text} {regions[i].text}' if len(regions) > 0 else game.text
-                chips_url = game['href']
-                row = db.Game(id=game_id, name=game_name, chips_url=chips_url)
-                games_set.add(row)
-    with db.Session.begin() as s:
-        s.bulk_save_objects(games_set)
+        result.append({'game_id': game.id, 'server_id': server_id, 'seller': name, 'side': side,
+                       'price': price, 'amount': amount, 'online': online})
+    return result
 
 
 def connect_to(target: str = None) -> requests.Response:
+    session = requests.Session()
     headers = {
         'authority': 'funpay.ru',
         'cache-control': 'max-age=0',
