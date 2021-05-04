@@ -61,3 +61,4 @@ def drop_old_ads(game_id: int, session: Session = session) -> None:
     stmt = delete(Ad).where(Ad.game_id == game_id)
     with session as s:
         s.execute(stmt)
+        s.commit()

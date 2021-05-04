@@ -8,9 +8,9 @@ import funpay_client.models as models
 
 @pytest.fixture(scope='function')
 def setup_database():
-    engine = create_engine('sqlite://')
+    engine = create_engine('sqlite://', future=True)
     models.Base.metadata.create_all(engine)
-    Session = sessionmaker(bind=engine)
+    Session = sessionmaker(bind=engine, future=True)
     session = Session()
     yield session
     session.close()
@@ -63,9 +63,9 @@ def dataset(setup_database):
 
 
 def test_database(dataset):
-    assert len(dataset.query(models.Game).all()) == 2
-    assert len(dataset.query(models.Server).all()) == 3
-    assert len(dataset.query(models.Ad).all()) == 5
+    assert len(dataset.execute(models.Game).all()) == 2
+    assert len(dataset.execute(models.Server).all()) == 3
+    assert len(dataset.execute(models.Ad).all()) == 5
 
 
 def test_get_ads_by_server(dataset):
@@ -102,3 +102,11 @@ def test_check_records_filled(dataset):
 
     assert fill_table is True
     assert empty_table is False
+
+
+def test_drop_old_ads(dataset):
+    azuregos = db.get_ads_by_server(111, dataset)
+    assert len(azuregos) == 3
+    db.drop_old_ads(2, dataset)
+    azuregos = db.get_ads_by_server(111, dataset)
+    assert azuregos is None
