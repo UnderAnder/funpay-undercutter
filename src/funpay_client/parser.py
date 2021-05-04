@@ -3,7 +3,7 @@ from typing import List
 import requests
 from bs4 import BeautifulSoup
 
-import db
+import funpay_client.db as db
 
 
 def get_games() -> List[dict]:

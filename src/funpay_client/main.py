@@ -1,6 +1,6 @@
-import parser
-import db
-import cli
+import funpay_client.parser as parser
+import funpay_client.db as db
+import funpay_client.cli as cli
 
 
 def update_ads(game):
