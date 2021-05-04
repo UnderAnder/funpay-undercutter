@@ -1,6 +1,6 @@
 from typing import Union, List
 
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.orm import sessionmaker
 
 from models import engine, Game, Server, Ad
@@ -55,3 +55,9 @@ def get_ads_by_server(server_id: int, session: Session = session) -> Union[None,
         if not ads:
             return None
         return ads
+
+
+def drop_old_ads(game_id: int, session: Session = session) -> None:
+    stmt = delete(Ad).where(Ad.game_id == game_id)
+    with session as s:
+        s.execute(stmt)
