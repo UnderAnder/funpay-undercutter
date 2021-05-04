@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from db import Ad, Server, Game, Base, get_ads_by_server, get_server_by_name, get_game_by_name, check_records_filled
+from src.db import Ad, Server, Game, Base, get_ads_by_server, get_server_by_name, get_game_by_name, check_records_filled
 
 
 @pytest.fixture(scope='function')
