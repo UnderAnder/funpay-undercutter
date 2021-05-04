@@ -5,10 +5,11 @@ from sqlalchemy.orm import sessionmaker
 
 from models import engine, Game, Server, Ad
 
-Session = sessionmaker(engine, future=True)()
+Session = sessionmaker(engine, future=True)
+session = Session()
 
 
-def check_records_filled(table: str, related: tuple = None, session: Session = Session) -> bool:
+def check_records_filled(table: str, related: tuple = None, session: Session = session) -> bool:
     stmt = f'select * from {table} where {related[0]}={related[1]}' if related else f'select * from {table}'
     with session as s:
         if not s.execute(stmt).first():
@@ -16,7 +17,20 @@ def check_records_filled(table: str, related: tuple = None, session: Session = S
         return True
 
 
-def get_game_by_name(name: str, session: Session = Session) -> Union[None, Game]:
+def write_bulk(type_, list_: List[dict]) -> None:
+    if type_ == 'game':
+        objects = [Game(**el) for el in list_]
+    elif type_ == 'server':
+        objects = [Server(**el) for el in list_]
+    elif type_ == 'ad':
+        objects = [Ad(**el) for el in list_]
+    else:
+        raise ValueError
+    with Session.begin() as s:
+        s.bulk_save_objects(objects)
+
+
+def get_game_by_name(name: str, session: Session = session) -> Union[None, Game]:
     stmt = select(Game).where(Game.name == name)
     with session as s:
         game = s.execute(stmt).first()
@@ -25,7 +39,7 @@ def get_game_by_name(name: str, session: Session = Session) -> Union[None, Game]
         return game[0]
 
 
-def get_server_by_name(name: str, game_id: int, session: Session = Session) -> Union[None, Server]:
+def get_server_by_name(name: str, game_id: int, session: Session = session) -> Union[None, Server]:
     stmt = select(Server).filter_by(name=name, game_id=game_id)
     with session as s:
         server = s.execute(stmt).first()
@@ -34,7 +48,7 @@ def get_server_by_name(name: str, game_id: int, session: Session = Session) -> U
         return server[0]
 
 
-def get_ads_by_server(server_id: int, session: Session = Session) -> Union[None, List[Ad]]:
+def get_ads_by_server(server_id: int, session: Session = session) -> Union[None, List[Ad]]:
     stmt = select(Ad).filter_by(server_id=server_id)
     with session as s:
         ads = s.execute(stmt).all()
