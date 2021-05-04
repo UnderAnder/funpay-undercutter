@@ -2,7 +2,7 @@ import argparse
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Funpay client')
+    parser = argparse.ArgumentParser(description='Funpay funpay_client')
     parser.add_argument('game', type=str, default='World of Warcraft RU, EU', nargs='?',
                         metavar='Game name', help='e.g "World of Warcraft RU, EU"')
     parser.add_argument('server', type=str, default='Азурегос', nargs='?', metavar='Server name',

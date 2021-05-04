@@ -2,13 +2,14 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from src.db import Ad, Server, Game, Base, get_ads_by_server, get_server_by_name, get_game_by_name, check_records_filled
+import funpay_client.db as db
+import funpay_client.models as models
 
 
 @pytest.fixture(scope='function')
 def setup_database():
     engine = create_engine('sqlite://')
-    Base.metadata.create_all(engine)
+    models.Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     session = Session()
     yield session
@@ -19,24 +20,24 @@ def setup_database():
 def dataset(setup_database):
     session = setup_database
 
-    game1 = Game(id=2, name='World of Warcraft', chips_url='http://example.com/2')
-    game2 = Game(id=1, name='Lineage 2', chips_url='http://example.com/1')
-    server1 = Server(id=111, game_id=2, name='Азурегос')
-    server2 = Server(id=112, game_id=2, name='Soulflayer')
-    server3 = Server(id=20, game_id=1, name='Adena')
-    ad1 = Ad(id=1, game_id=2, server_id=111, seller='Charles Dodgeson',
-             side=1, price=130, amount=100000, online=0)
+    game1 = models.Game(id=2, name='World of Warcraft', chips_url='http://example.com/2')
+    game2 = models.Game(id=1, name='Lineage 2', chips_url='http://example.com/1')
+    server1 = models.Server(id=111, game_id=2, name='Азурегос')
+    server2 = models.Server(id=112, game_id=2, name='Soulflayer')
+    server3 = models.Server(id=20, game_id=1, name='Adena')
+    ad1 = models.Ad(id=1, game_id=2, server_id=111, seller='Charles Dodgeson',
+                    side=1, price=130, amount=100000, online=0)
     # server not exist
-    ad2 = Ad(id=2, game_id=2, server_id=404, seller='Charles Dodgeson',
-             side=0, price=140, amount=100000, online=1)
-    ad3 = Ad(id=3, game_id=1, server_id=20, seller='Charles Dodgeson',
-             side=2, price=150, amount=100000, online=0)
+    ad2 = models.Ad(id=2, game_id=2, server_id=404, seller='Charles Dodgeson',
+                    side=0, price=140, amount=100000, online=1)
+    ad3 = models.Ad(id=3, game_id=1, server_id=20, seller='Charles Dodgeson',
+                    side=2, price=150, amount=100000, online=0)
     # same hash as ad1
-    ad4 = Ad(id=4, game_id=2, server_id=111, seller='Charles Dodgeson',
-             side=1, price=130, amount=100000, online=0)
+    ad4 = models.Ad(id=4, game_id=2, server_id=111, seller='Charles Dodgeson',
+                    side=1, price=130, amount=100000, online=0)
     # as ad1 but other side
-    ad5 = Ad(id=5, game_id=2, server_id=111, seller='Charles Dodgeson',
-             side=0, price=130, amount=100000, online=0)
+    ad5 = models.Ad(id=5, game_id=2, server_id=111, seller='Charles Dodgeson',
+                    side=0, price=130, amount=100000, online=0)
 
     session.add(game1)
     session.add(game2)
@@ -62,15 +63,15 @@ def dataset(setup_database):
 
 
 def test_database(dataset):
-    assert len(dataset.query(Game).all()) == 2
-    assert len(dataset.query(Server).all()) == 3
-    assert len(dataset.query(Ad).all()) == 5
+    assert len(dataset.query(models.Game).all()) == 2
+    assert len(dataset.query(models.Server).all()) == 3
+    assert len(dataset.query(models.Ad).all()) == 5
 
 
 def test_get_ads_by_server(dataset):
-    azuregos = get_ads_by_server(111, dataset)
-    adena = get_ads_by_server(112, dataset)
-    not_exist = get_ads_by_server(1, dataset)
+    azuregos = db.get_ads_by_server(111, dataset)
+    adena = db.get_ads_by_server(112, dataset)
+    not_exist = db.get_ads_by_server(1, dataset)
 
     assert len(azuregos) == 3
     assert len(adena) == 1
@@ -78,26 +79,26 @@ def test_get_ads_by_server(dataset):
 
 
 def test_get_server_by_name(dataset):
-    azuregos = dataset.query(Server).where(Server.id == 111)[0]
-    azuregos_by_name = get_server_by_name('Азурегос', 2, dataset)
-    not_existing_server = get_server_by_name('NOTEX1ST', 2, dataset)
+    azuregos = dataset.query(models.Server).where(models.Server.id == 111)[0]
+    azuregos_by_name = db.get_server_by_name('Азурегос', 2, dataset)
+    not_existing_server = db.get_server_by_name('NOTEX1ST', 2, dataset)
 
     assert azuregos is azuregos_by_name
     assert not_existing_server is None
 
 
 def test_get_game_by_name(dataset):
-    wow = dataset.query(Game).where(Game.id == 2)[0]
-    wow_by_name = get_game_by_name('World of Warcraft', dataset)
-    not_existing_game = get_game_by_name('NOTEX1ST', dataset)
+    wow = dataset.query(models.Game).where(models.Game.id == 2)[0]
+    wow_by_name = db.get_game_by_name('World of Warcraft', dataset)
+    not_existing_game = db.get_game_by_name('NOTEX1ST', dataset)
 
     assert wow is wow_by_name
     assert not_existing_game is None
 
 
 def test_check_records_filled(dataset):
-    fill_table = check_records_filled('Ad', session=dataset)
-    empty_table = check_records_filled('Ad', ('server_id', 113), dataset)
+    fill_table = db.check_records_filled('Ad', session=dataset)
+    empty_table = db.check_records_filled('Ad', ('server_id', 113), dataset)
 
     assert fill_table is True
     assert empty_table is False
