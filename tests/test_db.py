@@ -1,5 +1,4 @@
 import pytest
-import sqlalchemy
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
@@ -21,8 +20,9 @@ def setup_database():
 def dataset(setup_database):
     session = setup_database
 
-    game1 = models.Game(id=2, name='World of Warcraft', chips_url='http://example.com/2')
+    game1 = models.Game(id=2, name='World of Warcraft RU/EN', chips_url='http://example.com/2')
     game2 = models.Game(id=1, name='Lineage 2', chips_url='http://example.com/1')
+    game3 = models.Game(id=22, name='World of Warcraft US', chips_url='http://example.com/22')
     server1 = models.Server(id=111, game_id=2, name='Азурегос')
     server2 = models.Server(id=112, game_id=2, name='Soulflayer')
     server3 = models.Server(id=20, game_id=1, name='Adena')
@@ -42,6 +42,7 @@ def dataset(setup_database):
 
     session.add(game1)
     session.add(game2)
+    session.add(game3)
     session.add(server1)
     session.add(server2)
     session.add(server3)
@@ -64,7 +65,7 @@ def dataset(setup_database):
 
 
 def test_database(dataset):
-    assert len(dataset.execute(select(models.Game)).all()) == 2
+    assert len(dataset.execute(select(models.Game)).all()) == 3
     assert len(dataset.execute(select(models.Server)).all()) == 3
     assert len(dataset.execute(select(models.Ad)).all()) == 5
 
@@ -85,18 +86,16 @@ def test_get_server_by_name(dataset):
     azuregos_by_name = db.get_server_by_name('Азурегос', 2, dataset)
 
     assert azuregos == azuregos_by_name
-    with pytest.raises(sqlalchemy.orm.exc.NoResultFound):
-        db.get_server_by_name('NOTEX1ST', 2, dataset)
+    assert db.get_server_by_name('NOTEX1ST', 2, dataset) is None
 
 
 def test_get_game_by_name(dataset):
     stmt = select(models.Game).filter_by(id=2)
     wow = dataset.execute(stmt).one()[0]
-    wow_by_name = db.get_game_by_name('World of Warcraft', dataset)
+    wow_by_name = db.get_game_by_name('World of Warcraft RU/EN', dataset)
 
     assert wow == wow_by_name
-    with pytest.raises(sqlalchemy.orm.exc.NoResultFound):
-        db.get_game_by_name('NOTEX1ST', dataset)
+    assert db.get_game_by_name('NOTEX1ST', dataset) is None
 
 
 def test_check_records_filled(dataset):
@@ -134,9 +133,9 @@ def test_write_bulk(dataset):
     ads = [{'game_id': 2, 'server_id': 5, 'seller': 'testname', 'side': 'testside',
             'price': 304, 'amount': 10000, 'online': False}]
 
-    assert len(dataset.execute(select(models.Game)).all()) == 2
+    assert len(dataset.execute(select(models.Game)).all()) == 3
     db.write_bulk('game', games, dataset)
-    assert len(dataset.execute(select(models.Game)).all()) == 4
+    assert len(dataset.execute(select(models.Game)).all()) == 5
 
     assert len(dataset.execute(select(models.Server)).all()) == 3
     db.write_bulk('server', servers, dataset)

@@ -31,12 +31,12 @@ def write_bulk(type_, list_: List[dict], session: Session = session) -> None:
 
 def get_game_by_name(name: str, session: Session = session) -> Game:
     stmt = select(Game).where(Game.name == name)
-    return session.execute(stmt).one()[0]
+    return session.execute(stmt).scalar()
 
 
 def get_server_by_name(name: str, game_id: int, session: Session = session) -> Server:
     stmt = select(Server).filter_by(name=name, game_id=game_id)
-    return session.execute(stmt).one()[0]
+    return session.execute(stmt).scalar()
 
 
 def get_ads_by_server(server_id: int, session: Session = session) -> List[Ad]:
