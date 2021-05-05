@@ -5,12 +5,14 @@ from bs4 import BeautifulSoup
 
 import funpay_client.db as db
 
+FUNPAY_URL = "https://funpay.ru/"
+
 
 def get_games() -> List[dict]:
     result = list()
-    funpay_url = "https://funpay.ru/"
-    print(f'Get games list from {funpay_url}')
-    req = connect_to(funpay_url)
+
+    print(f'Get games list from {FUNPAY_URL}')
+    req = connect_to(FUNPAY_URL)
     soup = BeautifulSoup(req.content, 'lxml')
     game_items = soup.find_all('div', class_='promo-game-item')
     for item in game_items:
@@ -69,7 +71,7 @@ def get_ads_for(game: db.Game) -> List[dict]:
     return result
 
 
-def connect_to(target: str = None) -> requests.Response:
+def connect_to(target: str = None, cookie: dict = None) -> requests.Response:
     session = requests.Session()
     headers = {
         'authority': 'funpay.ru',
@@ -85,11 +87,21 @@ def connect_to(target: str = None) -> requests.Response:
         'referer': target,
         'accept-encoding': 'gzip, deflate, br',
         'accept-language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
+        'cookie': f'PHPSESSID={cookie["phpsessid"]}; golden_key={cookie["golden"]};' if cookie else '',
     }
     req = session.get(target, headers=headers)
 
     if not req:
-        print(f"Unable to connect to {target}")
+        print(f"Unable to connect to {target}, {req.status_code}")
         exit()
 
     return req
+
+
+def get_user_name(cookie):
+    req = connect_to(FUNPAY_URL, cookie)
+    soup = BeautifulSoup(req.content, 'lxml')
+    user_name = soup.find('div', class_='user-link-name')
+    if not user_name:
+        print("Error: can't get user name, check your cookie")
+    return user_name.text
