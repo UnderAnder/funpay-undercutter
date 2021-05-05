@@ -1,5 +1,6 @@
 import pytest
-from sqlalchemy import create_engine
+import sqlalchemy
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
 import funpay_client.db as db
@@ -63,9 +64,9 @@ def dataset(setup_database):
 
 
 def test_database(dataset):
-    assert len(dataset.execute(models.Game).all()) == 2
-    assert len(dataset.execute(models.Server).all()) == 3
-    assert len(dataset.execute(models.Ad).all()) == 5
+    assert len(dataset.execute(select(models.Game)).all()) == 2
+    assert len(dataset.execute(select(models.Server)).all()) == 3
+    assert len(dataset.execute(select(models.Ad)).all()) == 5
 
 
 def test_get_ads_by_server(dataset):
@@ -75,25 +76,27 @@ def test_get_ads_by_server(dataset):
 
     assert len(azuregos) == 3
     assert len(adena) == 1
-    assert not_exist is None
+    assert len(not_exist) == 0
 
 
 def test_get_server_by_name(dataset):
-    azuregos = dataset.query(models.Server).where(models.Server.id == 111)[0]
+    stmt = select(models.Server).filter_by(id=111)
+    azuregos = dataset.execute(stmt).one()[0]
     azuregos_by_name = db.get_server_by_name('Азурегос', 2, dataset)
-    not_existing_server = db.get_server_by_name('NOTEX1ST', 2, dataset)
 
-    assert azuregos is azuregos_by_name
-    assert not_existing_server is None
+    assert azuregos == azuregos_by_name
+    with pytest.raises(sqlalchemy.orm.exc.NoResultFound):
+        db.get_server_by_name('NOTEX1ST', 2, dataset)
 
 
 def test_get_game_by_name(dataset):
-    wow = dataset.query(models.Game).where(models.Game.id == 2)[0]
+    stmt = select(models.Game).filter_by(id=2)
+    wow = dataset.execute(stmt).one()[0]
     wow_by_name = db.get_game_by_name('World of Warcraft', dataset)
-    not_existing_game = db.get_game_by_name('NOTEX1ST', dataset)
 
-    assert wow is wow_by_name
-    assert not_existing_game is None
+    assert wow == wow_by_name
+    with pytest.raises(sqlalchemy.orm.exc.NoResultFound):
+        db.get_game_by_name('NOTEX1ST', dataset)
 
 
 def test_check_records_filled(dataset):
@@ -115,9 +118,33 @@ def test_drop_old_ads(dataset):
 
 def test_get_ads_for(dataset):
     user_name = 'Charles Dodgeson'
+    assert len(db.get_ads_for('not_exist', 2, dataset)) == 0
+    assert len(db.get_ads_for(user_name, 2, dataset)) == 4
+    assert len(db.get_ads_for(user_name, session=dataset)) == 5
+    assert len(db.get_ads_for(user_name, 1, dataset)) == 1
+    assert len(db.get_ads_for(user_name, 3, dataset)) == 0
 
-    assert len(db.get_ads_for('not_exist', 2)) == 0
-    assert len(db.get_ads_for(user_name, 2)) == 3
-    assert len(db.get_ads_for(user_name)) == 4
-    assert len(db.get_ads_for(user_name, 1)) == 1
-    assert len(db.get_ads_for(user_name, 3)) == 0
+
+def test_write_bulk(dataset):
+    games = [{'id': 9, 'name': 'testgame1', 'chips_url': 'test_url'},
+             {'id': 10, 'name': 'test game 2', 'chips_url': 'https://test'}]
+    servers = [{'id': 5, 'game_id': 9, 'name': 'testa'},
+               {'id': 6, 'game_id': 9, 'name': 'testb'},
+               {'id': 7, 'game_id': 8, 'name': 'testc'}]
+    ads = [{'game_id': 2, 'server_id': 5, 'seller': 'testname', 'side': 'testside',
+            'price': 304, 'amount': 10000, 'online': False}]
+
+    assert len(dataset.execute(select(models.Game)).all()) == 2
+    db.write_bulk('game', games, dataset)
+    assert len(dataset.execute(select(models.Game)).all()) == 4
+
+    assert len(dataset.execute(select(models.Server)).all()) == 3
+    db.write_bulk('server', servers, dataset)
+    assert len(dataset.execute(select(models.Server)).all()) == 6
+
+    assert len(dataset.execute(select(models.Ad)).all()) == 5
+    db.write_bulk('ad', ads, dataset)
+    assert len(dataset.execute(select(models.Ad)).all()) == 6
+
+    with pytest.raises(ValueError):
+        db.write_bulk('not_exist', ads, dataset)
