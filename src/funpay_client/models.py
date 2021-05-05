@@ -54,7 +54,7 @@ class Ad(Base):
     game_id = Column(Integer, ForeignKey('game.id'))
     server_id = Column(Integer, ForeignKey('server.id'))
     seller = Column(String(50))
-    side = Column(Integer)
+    side = Column(String(30))
     price = Column(Integer)
     amount = Column(Integer)
     online = Column(Boolean)

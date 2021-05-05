@@ -56,8 +56,7 @@ def get_ads_for(game: db.Game) -> List[dict]:
     for ad in ads:
         server_id = ad["data-server"]
         server_id = 0 if server_id == '*' else int(server_id)
-        side = ad["data-side"]
-        side = 0 if side == '*' else int(side)
+        side = ad.find('div', class_='tc-side').text
         try:
             online = bool(ad["data-online"])
         except KeyError:
