@@ -77,5 +77,9 @@ class Ad(Base):
         return f"Ad(server_id={self.server_id!r}, seller={self.seller!r}, side={self.side!r}, price={self.price!r}, " \
                f"amount={self.amount!r}, online={self.online!r})"
 
+    def __str__(self):
+        return f'{self.seller: <10} {float(self.price) / 100: <4}₽ {self.amount: <8} ' \
+               f'{self.server.name: <14} {self.side: <8} {self.game.name: <8}'
+
 
 Base.metadata.create_all(engine)

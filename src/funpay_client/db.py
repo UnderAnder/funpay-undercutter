@@ -60,9 +60,7 @@ def get_ads_for(user_name: str, game_id: int = None, session: Session = session)
         stmt = select(Ad).filter_by(game_id=game_id, seller=user_name)
     else:
         stmt = select(Ad).filter_by(seller=user_name)
-    with session as s:
-        ads = s.execute(stmt).all()
-        return ads
+    return session.execute(stmt).all()
 
 
 def drop_old_ads(game_id: int, session: Session = session) -> None:
