@@ -107,6 +107,17 @@ def test_check_records_filled(dataset):
 def test_drop_old_ads(dataset):
     azuregos = db.get_ads_by_server(111, dataset)
     assert len(azuregos) == 3
+
     db.drop_old_ads(2, dataset)
     azuregos = db.get_ads_by_server(111, dataset)
-    assert azuregos is None
+    assert len(azuregos) == 0
+
+
+def test_get_ads_for(dataset):
+    user_name = 'Charles Dodgeson'
+
+    assert len(db.get_ads_for('not_exist', 2)) == 0
+    assert len(db.get_ads_for(user_name, 2)) == 3
+    assert len(db.get_ads_for(user_name)) == 4
+    assert len(db.get_ads_for(user_name, 1)) == 1
+    assert len(db.get_ads_for(user_name, 3)) == 0

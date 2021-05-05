@@ -48,12 +48,20 @@ def get_server_by_name(name: str, game_id: int, session: Session = session) -> U
         return server[0]
 
 
-def get_ads_by_server(server_id: int, session: Session = session) -> Union[None, List[Ad]]:
+def get_ads_by_server(server_id: int, session: Session = session) -> List[Ad]:
     stmt = select(Ad).filter_by(server_id=server_id)
     with session as s:
         ads = s.execute(stmt).all()
-        if not ads:
-            return None
+        return ads
+
+
+def get_ads_for(user_name: str, game_id: int = None, session: Session = session) -> List[Ad]:
+    if game_id:
+        stmt = select(Ad).filter_by(game_id=game_id, seller=user_name)
+    else:
+        stmt = select(Ad).filter_by(seller=user_name)
+    with session as s:
+        ads = s.execute(stmt).all()
         return ads
 
 
