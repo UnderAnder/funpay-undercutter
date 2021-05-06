@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
 Base = declarative_base()
-engine = create_engine('sqlite+pysqlite:///../app.db', echo=True, future=True)
+engine = create_engine('sqlite+pysqlite:///../../app.db', echo=True, future=True)
 
 
 class Game(Base):
@@ -51,10 +51,13 @@ class Server(Base):
 class Ad(Base):
     __tablename__ = 'ad'
     id = Column(Integer, primary_key=True)
+    seller_id = Column(Integer)
+    seller_name = Column(String(50))
+    chip_id = Column(Integer)
     game_id = Column(Integer, ForeignKey('game.id'))
     server_id = Column(Integer, ForeignKey('server.id'))
-    seller = Column(String(50))
-    side = Column(String(30))
+    side_name = Column(String(30))
+    side_id = Column(Integer)
     price = Column(Integer)
     amount = Column(Integer)
     online = Column(Boolean)
@@ -63,7 +66,7 @@ class Ad(Base):
     server = relationship("Server", back_populates="ads")
 
     def __key(self):
-        return self.server_id, self.seller, self.side
+        return self.server_id, self.seller_id, self.side_id
 
     def __hash__(self):
         return hash(self.__key())
@@ -74,12 +77,12 @@ class Ad(Base):
         return NotImplemented
 
     def __repr__(self):
-        return f"Ad(server_id={self.server_id!r}, seller={self.seller!r}, side={self.side!r}, price={self.price!r}, " \
-               f"amount={self.amount!r}, online={self.online!r})"
+        return f"Ad(server_id={self.server_id!r}, seller={self.seller_name!r}, side={self.side_name!r}," \
+               f"price={self.price!r}, amount={self.amount!r}, online={self.online!r})"
 
     def __str__(self):
-        return f'{self.seller: <10} {float(self.price) / 100: <4}₽ {self.amount: <8} ' \
-               f'{self.server.name: <14} {self.side: <8} {self.game.name: <8}'
+        return f'{self.seller_name: <18} {float(self.price) / 1000: <5}₽ {self.amount: <10} ' \
+               f'{self.server.name: <20} {self.side: <8} {self.game.name: <8}'
 
 
 Base.metadata.create_all(engine)

@@ -6,6 +6,20 @@ from bs4 import BeautifulSoup
 import funpay_client.db as db
 
 FUNPAY_URL = "https://funpay.ru/"
+HEADERS = {
+    'authority': 'funpay.ru',
+    'cache-control': 'max-age=0',
+    'upgrade-insecure-requests': '1',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                  'Chrome/90.0.4430.93 Safari/537.36',
+    'sec-fetch-mode': 'navigate',
+    'sec-fetch-user': '?1',
+    'dnt': '1',
+    'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+    'sec-fetch-site': 'none',
+    'accept-encoding': 'gzip, deflate, br',
+    'accept-language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
+}
 
 
 def get_games() -> List[dict]:
@@ -54,40 +68,36 @@ def get_ads_for(game: db.Game) -> List[dict]:
     ads_table = soup.find('div', class_='tc table-hover table-clickable showcase-table tc-sortable tc-lazyload')
     ads = ads_table.find_all('a', class_='tc-item')
     for ad in ads:
-        server_id = ad["data-server"]
-        server_id = 0 if server_id == '*' else int(server_id)
-        side = ad.find('div', class_='tc-side').text
+        href = ad['href'].split('=')[1].split('-')  # href like https://funpay.ru/chips/offer?id=109054-22-24-159-0
+        seller_id = int(href[0])
+        game_id = int(href[1])
+        chip_id = int(href[2])
+        server_id = int(href[3])
+        side_id = int(href[4])
         try:
-            online = bool(ad["data-online"])
+            side_name = ad.find('div', class_='tc-side').text
+        except KeyError:
+            side_name = ''
+        try:
+            online = bool(ad['data-online'])
         except KeyError:
             online = False
         price = ad.find('div', class_='tc-price').find('div').next_element.replace(' ', '')
-        price = int(float(price) * 100)
+        price = int(float(price) * 1000)
         amount = int(ad.find('div', class_='tc-amount').next.replace(' ', ''))
         name = ad.find('div', class_='media-user-name').text
-        result.append({'game_id': game.id, 'server_id': server_id, 'seller': name, 'side': side,
-                       'price': price, 'amount': amount, 'online': online})
+        result.append({'seller_id': seller_id, 'game_id': game_id, 'chip_id': chip_id,
+                       'server_id': server_id, 'seller_name': name, 'side_id': side_id,
+                       'side_name': side_name, 'price': price, 'amount': amount, 'online': online})
     return result
 
 
 def connect_to(target: str = None, cookie: dict = None) -> requests.Response:
     session = requests.Session()
-    headers = {
-        'authority': 'funpay.ru',
-        'cache-control': 'max-age=0',
-        'upgrade-insecure-requests': '1',
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                      'Chrome/90.0.4430.93 Safari/537.36',
-        'sec-fetch-mode': 'navigate',
-        'sec-fetch-user': '?1',
-        'dnt': '1',
-        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-        'sec-fetch-site': 'none',
-        'referer': target,
-        'accept-encoding': 'gzip, deflate, br',
-        'accept-language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
-        'cookie': f'PHPSESSID={cookie["phpsessid"]}; golden_key={cookie["golden"]};' if cookie else '',
-    }
+    headers = HEADERS
+    headers['referer'] = target
+    headers['cookie'] = f'PHPSESSID={cookie["phpsessid"]}; golden_key={cookie["golden"]};' if cookie else ''
+
     req = session.get(target, headers=headers)
 
     if not req:
@@ -95,12 +105,3 @@ def connect_to(target: str = None, cookie: dict = None) -> requests.Response:
         exit()
 
     return req
-
-
-def get_user_name(cookie):
-    req = connect_to(FUNPAY_URL, cookie)
-    soup = BeautifulSoup(req.content, 'lxml')
-    user_name = soup.find('div', class_='user-link-name')
-    if not user_name:
-        print("Error: can't get user name, check your cookie")
-    return user_name.text
