@@ -26,19 +26,19 @@ def dataset(setup_database):
     server1 = models.Server(id=111, game_id=2, name='Азурегос')
     server2 = models.Server(id=112, game_id=2, name='Soulflayer')
     server3 = models.Server(id=20, game_id=1, name='Adena')
-    ad1 = models.Ad(id=1, game_id=2, server_id=111, seller='Charles Dodgeson',
-                    side=1, price=130, amount=100000, online=0)
+    ad1 = models.Ad(id=1, game_id=2, server_id=111, seller_name='Charles Dodgeson',
+                    side_id=1, price=130, amount=100000, online=0)
     # server not exist
-    ad2 = models.Ad(id=2, game_id=2, server_id=404, seller='Charles Dodgeson',
-                    side=0, price=140, amount=100000, online=1)
-    ad3 = models.Ad(id=3, game_id=1, server_id=20, seller='Charles Dodgeson',
-                    side=2, price=150, amount=100000, online=0)
+    ad2 = models.Ad(id=2, game_id=2, server_id=404, seller_name='Charles Dodgeson',
+                    side_id=0, price=140, amount=100000, online=1)
+    ad3 = models.Ad(id=3, game_id=1, server_id=20, seller_name='Charles Dodgeson',
+                    side_id=2, price=150, amount=100000, online=0)
     # same hash as ad1
-    ad4 = models.Ad(id=4, game_id=2, server_id=111, seller='Charles Dodgeson',
-                    side=1, price=130, amount=100000, online=0)
+    ad4 = models.Ad(id=4, game_id=2, server_id=111, seller_name='Charles Dodgeson',
+                    side_id=1, price=130, amount=100000, online=0)
     # as ad1 but other side
-    ad5 = models.Ad(id=5, game_id=2, server_id=111, seller='Charles Dodgeson',
-                    side=0, price=130, amount=100000, online=0)
+    ad5 = models.Ad(id=5, game_id=2, server_id=111, seller_name='Charles Dodgeson',
+                    side_id=0, price=130, amount=100000, online=0)
 
     session.add(game1)
     session.add(game2)
@@ -130,7 +130,7 @@ def test_write_bulk(dataset):
     servers = [{'id': 5, 'game_id': 9, 'name': 'testa'},
                {'id': 6, 'game_id': 9, 'name': 'testb'},
                {'id': 7, 'game_id': 8, 'name': 'testc'}]
-    ads = [{'game_id': 2, 'server_id': 5, 'seller': 'testname', 'side': 'testside',
+    ads = [{'game_id': 2, 'server_id': 5, 'seller_name': 'testname', 'side_id': 0,
             'price': 304, 'amount': 10000, 'online': False}]
 
     assert len(dataset.execute(select(models.Game)).all()) == 3

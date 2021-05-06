@@ -114,9 +114,9 @@ def set_values_for(ad: Ad, cookie: dict) -> bool:
     # save previous values in form
     form_data = dict((field.get('name'), 'on' if field.has_attr('checked') else field.get('value')) for field in fields)
 
-    form_data[f'offers[{Ad.server_id}][{Ad.side_id}][active]'] = 'on'
-    form_data[f'offers[{Ad.server_id}][{Ad.side_id}][amount]'] = Ad.amount
-    form_data[f'offers[{Ad.server_id}][{Ad.side_id}][price]'] = Ad.price
+    form_data[f'offers[{ad.server_id}][{ad.side_id}][active]'] = 'on'
+    form_data[f'offers[{ad.server_id}][{ad.side_id}][amount]'] = ad.amount
+    form_data[f'offers[{ad.server_id}][{ad.side_id}][price]'] = ad.price
 
     post = requests.post(form['action'], data=form_data, headers=headers)
     if post:

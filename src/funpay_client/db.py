@@ -27,6 +27,7 @@ def write_bulk(type_, list_: List[dict], session: Session = session) -> None:
     else:
         raise ValueError
     session.bulk_save_objects(objects)
+    session.commit()
 
 
 def get_game_by_name(name: str, session: Session = session) -> Game:
@@ -46,9 +47,9 @@ def get_ads_by_server(server_id: int, session: Session = session) -> List[Ad]:
 
 def get_ads_for(user_name: str, game_id: int = None, session: Session = session) -> List[Ad]:
     if game_id:
-        stmt = select(Ad).filter_by(game_id=game_id, seller=user_name)
+        stmt = select(Ad).filter_by(game_id=game_id, seller_name=user_name)
     else:
-        stmt = select(Ad).filter_by(seller=user_name)
+        stmt = select(Ad).filter_by(seller_name=user_name)
     return session.execute(stmt).all()
 
 

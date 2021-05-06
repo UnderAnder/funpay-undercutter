@@ -77,12 +77,12 @@ class Ad(Base):
         return NotImplemented
 
     def __repr__(self):
-        return f"Ad(server_id={self.server_id!r}, seller={self.seller_name!r}, side={self.side_name!r}," \
+        return f"Ad(server_id={self.server_id!r}, seller_name={self.seller_name!r}, side={self.side_name!r}," \
                f"price={self.price!r}, amount={self.amount!r}, online={self.online!r})"
 
     def __str__(self):
         return f'{self.seller_name: <18} {float(self.price) / 1000: <5}₽ {self.amount: <10} ' \
-               f'{self.server.name: <20} {self.side: <8} {self.game.name: <8}'
+               f'{self.server.name: <20} {self.side_name: <8} {self.game.name: <8}'
 
 
 Base.metadata.create_all(engine)
