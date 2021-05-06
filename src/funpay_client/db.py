@@ -52,7 +52,7 @@ def get_ads_for(user_name: str, game_id: int = None, session: Session = session)
     return session.execute(stmt).all()
 
 
-def drop_old_ads(game_id: int, session: Session = session) -> None:
+def drop_old_ads_for(game_id: int, session: Session = session) -> None:
     stmt = delete(Ad).where(Ad.game_id == game_id)
     session.execute(stmt)
     session.commit()

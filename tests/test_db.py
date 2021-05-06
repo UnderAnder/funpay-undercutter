@@ -110,7 +110,7 @@ def test_drop_old_ads(dataset):
     azuregos = db.get_ads_by_server(111, dataset)
     assert len(azuregos) == 3
 
-    db.drop_old_ads(2, dataset)
+    db.drop_old_ads_for(2, dataset)
     azuregos = db.get_ads_by_server(111, dataset)
     assert len(azuregos) == 0
 
