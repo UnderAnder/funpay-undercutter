@@ -3,7 +3,7 @@ from typing import List
 import requests
 from bs4 import BeautifulSoup
 
-import funpay_client.db as db
+from funpay_client.models import Ad, Game
 
 FUNPAY_URL = "https://funpay.ru/"
 HEADERS = {
@@ -42,7 +42,7 @@ def get_games() -> List[dict]:
     return result
 
 
-def get_servers_for(game: db.Game) -> List[dict]:
+def get_servers_for(game: Game) -> List[dict]:
     result = list()
     tmp = list()
     print('Loading servers names from', game.chips_url)
@@ -60,7 +60,7 @@ def get_servers_for(game: db.Game) -> List[dict]:
     return result
 
 
-def get_ads_for(game: db.Game) -> List[dict]:
+def get_ads_for(game: Game) -> List[dict]:
     print('Loading ads from', game.chips_url)
     result = list()
     req = connect_to(game.chips_url)
@@ -99,6 +99,31 @@ def get_user_name(cookie: dict) -> str:
     if not user_name:
         print("Error: can't get user name, check your cookie")
     return user_name.text
+
+
+def set_values_for(ad: Ad, cookie: dict) -> bool:
+    trade_url = f'{ad.game.chips_url}trade'
+    headers = HEADERS
+    headers['referer'] = trade_url
+    headers['cookie'] = f'PHPSESSID={cookie["phpsessid"]}; golden_key={cookie["golden"]};'
+
+    req = connect_to(trade_url, cookie)
+    soup = BeautifulSoup(req.content, 'lxml')
+    form = soup.find('form', class_='form-ajax-simple')
+    fields = form.find_all('input')
+    # save previous values in form
+    form_data = dict((field.get('name'), 'on' if field.has_attr('checked') else field.get('value')) for field in fields)
+
+    form_data[f'offers[{Ad.server_id}][{Ad.side_id}][active]'] = 'on'
+    form_data[f'offers[{Ad.server_id}][{Ad.side_id}][amount]'] = Ad.amount
+    form_data[f'offers[{Ad.server_id}][{Ad.side_id}][price]'] = Ad.price
+
+    post = requests.post(form['action'], data=form_data, headers=headers)
+    if post:
+        print('New values successfully saved', post.status_code)
+    else:
+        print('Something went wrong, the new values are not saved', post.status_code)
+    return bool(post)
 
 
 def connect_to(target: str = None, cookie: dict = None) -> requests.Response:
