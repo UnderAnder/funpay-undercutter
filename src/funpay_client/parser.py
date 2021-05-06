@@ -92,6 +92,15 @@ def get_ads_for(game: db.Game) -> List[dict]:
     return result
 
 
+def get_user_name(cookie: dict) -> str:
+    req = connect_to(FUNPAY_URL, cookie)
+    soup = BeautifulSoup(req.content, 'lxml')
+    user_name = soup.find('div', class_='user-link-name')
+    if not user_name:
+        print("Error: can't get user name, check your cookie")
+    return user_name.text
+
+
 def connect_to(target: str = None, cookie: dict = None) -> requests.Response:
     session = requests.Session()
     headers = HEADERS
