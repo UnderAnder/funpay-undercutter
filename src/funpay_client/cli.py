@@ -1,9 +1,9 @@
 import argparse
 import os
-from typing import Union
+from typing import Optional
 
 
-def parse_args():
+def args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description='Funpay funpay_client')
     parser.add_argument('game', type=str, default='World of Warcraft RU, EU', nargs='?',
                         metavar='Game name', help='e.g "World of Warcraft RU, EU"')
@@ -18,7 +18,7 @@ def setup_cookie():
     return phpsessid_key, golden_key
 
 
-def parse_cookie() -> Union[None, dict]:
+def get_cookie() -> Optional[dict[str, Optional[str]]]:
     # Get environment variables
     phpsessid_key = os.getenv('FUNPAY_PHPSESSID')
     golden_key = os.getenv('FUNPAY_GOLDEN')
