@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 import requests
 from bs4 import BeautifulSoup
@@ -98,8 +98,10 @@ def update_ads_for(game: Game) -> None:
     db.write_bulk('ad', ads)
 
 
-def get_user_name() -> str:
+def get_user_name() -> Optional[str]:
     cookie = cli.get_cookie()
+    if not cookie:
+        return None
     req = connect_to(FUNPAY_URL, cookie)
     soup = BeautifulSoup(req.content, 'lxml')
     user_name = soup.find('div', class_='user-link-name')
