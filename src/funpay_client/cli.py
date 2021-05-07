@@ -2,6 +2,8 @@ import argparse
 import os
 from typing import Optional
 
+from funpay_client import parser
+
 
 class Menu:
     def __init__(self, name: str, options: list = None, master=None, callback=None, back: bool = False):
@@ -32,6 +34,18 @@ class Menu:
 
     def add_options(self, *options):
         self.options += options
+
+
+def main_menu(game):
+    menu = Menu(game.name, back=True)
+    main_update_ads = Menu(f'Update data', callback=(parser.update_ads_for, game))
+    main_set_lowest = Menu('Set all my lots at the lowest price', master=menu)
+    main_change_menu = Menu('Change ad', master=menu)
+    main_new_ad = Menu('New ad', master=menu)
+    main_exit = Menu('Exit', callback=exit)
+
+    menu.add_options(main_update_ads, main_set_lowest, main_change_menu, main_new_ad, main_exit)
+    return menu
 
 
 def args() -> argparse.Namespace:
