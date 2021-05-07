@@ -108,18 +108,21 @@ def setup_cookie():
 
 
 def get_cookie() -> Optional[dict[str, Optional[str]]]:
-    # Get environment variables
+    def check(phpsessid_key, golden_key):
+        return True if all((phpsessid_key, golden_key)) else False
+
     phpsessid_key = os.getenv('FUNPAY_PHPSESSID')
     golden_key = os.getenv('FUNPAY_GOLDEN')
-    if not any((phpsessid_key, golden_key)):
-        print('Cookie not setup, price change is impossible')
-        print('You can setup persistent cookie with FUNPAY_PHPSESSID and FUNPAY_GOLDEN system variables')
-        raw_input = input('Setup cookie for this session? y/n ')
-        if raw_input == 'y':
-            phpsessid_key, golden_key = setup_cookie()
-        else:
-            return None
-    return {'phpsessid': phpsessid_key, 'golden': golden_key}
+    if check(phpsessid_key, golden_key):
+        return {'phpsessid': phpsessid_key, 'golden': golden_key}
+
+    print('Cookie not setup, price change is impossible')
+    print('You can setup persistent cookie with FUNPAY_PHPSESSID and FUNPAY_GOLDEN system variables')
+    raw_input = input('Setup cookie for this session? y/N: ')
+    if raw_input == 'y':
+        setup_cookie()
+        get_cookie()
+    return None
 
 
 def check_input(*args, proper_values: tuple, back: bool = False, **kwargs) -> Optional[str]:
