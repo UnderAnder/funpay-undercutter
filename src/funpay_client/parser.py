@@ -2,7 +2,7 @@ from typing import List
 
 import requests
 from bs4 import BeautifulSoup
-from funpay_client import cli
+from funpay_client import cli, db
 from funpay_client.models import Ad, Game
 
 FUNPAY_URL = "https://funpay.ru/"
@@ -90,6 +90,12 @@ def get_ads_for(game: Game) -> List[dict]:
                        'server_id': server_id, 'seller_name': name, 'side_id': side_id,
                        'side_name': side_name, 'price': price, 'amount': amount, 'online': online})
     return result
+
+
+def update_ads_for(game: Game) -> None:
+    db.drop_old_ads_for(game.id)
+    ads = get_ads_for(game)
+    db.write_bulk('ad', ads)
 
 
 def get_user_name() -> str:

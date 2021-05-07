@@ -2,7 +2,7 @@ import argparse
 import os
 from typing import Optional
 
-from funpay_client import parser
+from funpay_client import parser, db, models
 
 
 class Menu:
@@ -40,12 +40,36 @@ def main_menu(game):
     menu = Menu(game.name, back=True)
     main_update_ads = Menu(f'Update data', callback=(parser.update_ads_for, game))
     main_set_lowest = Menu('Set all my lots at the lowest price', master=menu)
-    main_change_menu = Menu('Change ad', master=menu)
+    main_change_menu = Menu('Change ad', master=menu, callback=(change_menu, game))
     main_new_ad = Menu('New ad', master=menu)
     main_exit = Menu('Exit', callback=exit)
 
     menu.add_options(main_update_ads, main_set_lowest, main_change_menu, main_new_ad, main_exit)
     return menu
+
+
+def change_menu(game) -> Optional[Menu]:
+    ad = select_ad(game)
+    if not ad:
+        return None
+    menu = Menu('Change ad', master=main_menu, back=True)
+    change_set_lowest = Menu(f'Set ad to the lowest price', master=menu)
+    change_edit = Menu(f'Edit ad', master=menu)
+    menu_back = Menu('Back', callback=main_menu)
+
+    menu.add_options(change_set_lowest, change_edit, menu_back)
+    return menu
+
+
+def select_ad(game) -> Optional[models.Ad]:
+    user_name = parser.get_user_name()
+    user_ads = db.get_ads_for(user_name, game.id)
+    if not user_ads:
+        return None
+    print('\n'.join(f'{i}. {ad[0]}' for i, ad in enumerate(user_ads, start=1)))
+    allowed = tuple(str(i) for i in range(1, len(user_ads) + 1))
+    user_choice = check_input('Select one: ', proper_values=allowed)
+    return user_ads[int(user_choice)][0]
 
 
 def args() -> argparse.Namespace:
