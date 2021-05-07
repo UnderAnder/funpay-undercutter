@@ -46,6 +46,8 @@ def args() -> argparse.Namespace:
 def setup_cookie():
     phpsessid_key = input('PHPSESSID key: ')
     golden_key = input('GOLDEN key: ')
+    os.environ['FUNPAY_PHPSESSID'] = phpsessid_key
+    os.environ['FUNPAY_GOLDEN'] = golden_key
     return phpsessid_key, golden_key
 
 

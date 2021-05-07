@@ -2,7 +2,7 @@ from typing import List
 
 import requests
 from bs4 import BeautifulSoup
-
+from funpay_client import cli
 from funpay_client.models import Ad, Game
 
 FUNPAY_URL = "https://funpay.ru/"
@@ -92,7 +92,8 @@ def get_ads_for(game: Game) -> List[dict]:
     return result
 
 
-def get_user_name(cookie: dict) -> str:
+def get_user_name() -> str:
+    cookie = cli.get_cookie()
     req = connect_to(FUNPAY_URL, cookie)
     soup = BeautifulSoup(req.content, 'lxml')
     user_name = soup.find('div', class_='user-link-name')
@@ -101,8 +102,9 @@ def get_user_name(cookie: dict) -> str:
     return user_name.text
 
 
-def set_values_for(ad: Ad, cookie: dict) -> bool:
+def set_values_for(ad: Ad) -> bool:
     trade_url = f'{ad.game.chips_url}trade'
+    cookie = cli.get_cookie()
     headers = HEADERS
     headers['referer'] = trade_url
     headers['cookie'] = f'PHPSESSID={cookie["phpsessid"]}; golden_key={cookie["golden"]};'
@@ -133,9 +135,7 @@ def connect_to(target: str = None, cookie: dict = None) -> requests.Response:
     headers['cookie'] = f'PHPSESSID={cookie["phpsessid"]}; golden_key={cookie["golden"]};' if cookie else ''
 
     req = session.get(target, headers=headers)
-
     if not req:
         print(f"Unable to connect to {target}, {req.status_code}")
         exit()
-
     return req
