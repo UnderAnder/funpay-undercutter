@@ -2,7 +2,7 @@ from typing import List, Optional
 
 import requests
 from bs4 import BeautifulSoup
-from funpay_client import cli, db
+from funpay_client import cli, db, core
 from funpay_client.models import Ad, Game
 
 FUNPAY_URL = "https://funpay.ru/"
@@ -126,13 +126,13 @@ def set_values_for(ad: Ad) -> bool:
 
     form_data[f'offers[{ad.server_id}][{ad.side_id}][active]'] = 'on'
     form_data[f'offers[{ad.server_id}][{ad.side_id}][amount]'] = ad.amount
-    form_data[f'offers[{ad.server_id}][{ad.side_id}][price]'] = ad.price
+    form_data[f'offers[{ad.server_id}][{ad.side_id}][price]'] = core.price_without_commission(ad.price)/1000
 
     post = requests.post(form['action'], data=form_data, headers=headers)
     if post:
-        print('New values successfully saved', post.status_code)
+        print('New values successfully saved')
     else:
-        print('Something went wrong, the new values are not saved', post.status_code)
+        print('Something went wrong, the new values are not saved', f'status code: {post.status_code}')
     return bool(post)
 
 

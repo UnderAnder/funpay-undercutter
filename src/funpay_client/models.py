@@ -81,7 +81,7 @@ class Ad(Base):
                f"price={self.price!r}, amount={self.amount!r}, online={self.online!r})"
 
     def __str__(self):
-        return f'{self.seller_name: <18} {float(self.price) / 1000: <5}₽ {self.amount: <10} ' \
+        return f'{self.seller_name: <18} {round(float(self.price) / 1000, 3): <5}₽ {self.amount: <10} ' \
                f'{self.server.name: <20} {self.side_name: <8} {self.game.name: <8}'
 
 

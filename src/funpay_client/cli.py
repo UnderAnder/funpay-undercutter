@@ -2,7 +2,7 @@ import argparse
 import os
 from typing import Optional
 
-from funpay_client import parser, db, models
+from funpay_client import parser, db, models, core
 
 
 def get_args() -> argparse.Namespace:
@@ -86,17 +86,19 @@ def select_ad(game) -> Optional[models.Ad]:
 
 
 def edit_ad(ad: models.Ad) -> bool:
-    def price_without_commission(price) -> float:
-        return round((price - price * 0.19), 3)
-    price = float(input('Price with commission (leave blank to save old price): '))
-    if price:
-        without_commission = price_without_commission(price)
-        ad.price = without_commission
-        print('Price without commission:', without_commission)
-    amount = int(input('Amount (leave blank to save old price): '))
-    if amount:
-        ad.amount = amount
-    return parser.set_values_for(ad)
+    price = input('Price with commission (leave blank to save old price): ')
+    if core.isfloat(price):
+        save_price = int(float(price) * 1000)
+        ad.price = save_price
+        print('Price without commission:', core.price_without_commission(save_price))
+    else:
+        print('Wrong value' if price else f'Price: {ad.price/1000}')
+    amount = input('Amount (leave blank to save old price): ')
+    if core.isint(amount):
+        ad.amount = int(amount)
+    else:
+        print('Wrong value' if amount else f'Amount: {ad.amount}')
+    return parser.set_values_for(ad) if any((price, amount)) else False
 
 
 def setup_cookie() -> tuple:
