@@ -82,7 +82,7 @@ def test_get_ads_by_server(dataset):
 
 def test_get_server_by_name(dataset):
     stmt = select(models.Server).filter_by(id=111)
-    azuregos = dataset.execute(stmt).one()[0]
+    azuregos = dataset.execute(stmt).scalar()
     azuregos_by_name = db.get_server_by_name('Азурегос', 2, dataset)
 
     assert azuregos == azuregos_by_name
@@ -91,7 +91,7 @@ def test_get_server_by_name(dataset):
 
 def test_get_game_by_name(dataset):
     stmt = select(models.Game).filter_by(id=2)
-    wow = dataset.execute(stmt).one()[0]
+    wow = dataset.execute(stmt).scalar()
     wow_by_name = db.get_game_by_name('World of Warcraft RU/EN', dataset)
 
     assert wow == wow_by_name

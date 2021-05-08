@@ -79,13 +79,13 @@ def select_ad(game) -> Optional[models.Ad]:
     user_ads = db.get_ads_for(user_name, game.id)
     if not user_ads:
         return None
-    print('\n'.join(f'{i}. {ad[0]}' for i, ad in enumerate(user_ads, start=1)))
+    print('\n'.join(f'{i}. {ad}' for i, ad in enumerate(user_ads, start=1)))
     allowed = tuple(str(i) for i in range(1, len(user_ads) + 1))
     user_choice = check_input('Select one: ', proper_values=allowed)
-    return user_ads[int(user_choice) - 1][0]
+    return user_ads[int(user_choice) - 1]
 
 
-def edit_ad(ad: models.Ad):
+def edit_ad(ad: models.Ad) -> bool:
     def price_without_commission(price) -> float:
         return round((price - price * 0.19), 3)
     price = float(input('Price with commission (leave blank to save old price): '))
@@ -99,7 +99,7 @@ def edit_ad(ad: models.Ad):
     return parser.set_values_for(ad)
 
 
-def setup_cookie():
+def setup_cookie() -> tuple:
     phpsessid_key = input('PHPSESSID key: ')
     golden_key = input('GOLDEN key: ')
     os.environ['FUNPAY_PHPSESSID'] = phpsessid_key

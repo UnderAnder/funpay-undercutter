@@ -42,7 +42,7 @@ def get_server_by_name(name: str, game_id: int, session: Session = session) -> S
 
 def get_ads_by_server(server_id: int, session: Session = session) -> List[Ad]:
     stmt = select(Ad).filter_by(server_id=server_id)
-    return session.execute(stmt).all()
+    return session.execute(stmt).scalars().all()
 
 
 def get_ads_for(user_name: str, game_id: int = None, session: Session = session) -> List[Ad]:
@@ -50,7 +50,7 @@ def get_ads_for(user_name: str, game_id: int = None, session: Session = session)
         stmt = select(Ad).filter_by(game_id=game_id, seller_name=user_name)
     else:
         stmt = select(Ad).filter_by(seller_name=user_name)
-    return session.execute(stmt).all()
+    return session.execute(stmt).scalars().all()
 
 
 def drop_old_ads_for(game_id: int, session: Session = session) -> None:
