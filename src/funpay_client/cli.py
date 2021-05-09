@@ -49,7 +49,8 @@ def main_menu() -> None:
     game = db.get_game_by_name(args.game)
     menu = Menu(game.name, back=True)
     main_update_offers = Menu('Update data', master=menu, callback=(parser.update_offers_for, game))
-    main_set_lowest = Menu('Set all my lots at the lowest price', master=menu)
+    main_set_lowest = Menu('Set all my lots at the lowest price', master=menu,
+                           callback=(core.all_my_offers_best_price_for, game.id))
     main_change_menu = Menu('Change offer', master=menu, callback=(change_menu, game))
     main_new_offer = Menu('New offer', master=menu)
     main_exit = Menu('Exit', callback=exit)
@@ -75,10 +76,7 @@ def change_menu(game) -> None:
 
 
 def select_offer(game) -> Optional[models.Offer]:
-    user_name = parser.get_user_name()
-    if not user_name:
-        return None
-    user_offers = db.get_offers_for(user_name, game.id)
+    user_offers = core.my_offers(game.id)
     if not user_offers:
         return None
     print('\n'.join(f'{i}. {offer}' for i, offer in enumerate(user_offers, start=1)))
