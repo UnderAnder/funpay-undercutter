@@ -1,3 +1,4 @@
+from functools import cache
 from typing import List, Optional
 
 import requests
@@ -98,6 +99,7 @@ def update_offers_for(game: Game) -> None:
     db.write_bulk('offer', offers)
 
 
+@cache
 def get_user_name() -> Optional[str]:
     cookie = utils.get_cookie()
     if not cookie:
