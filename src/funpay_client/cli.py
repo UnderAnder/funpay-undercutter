@@ -99,7 +99,7 @@ def edit_offer(offer: models.Offer) -> bool:
         offer.amount = int(amount)
     else:
         print('Wrong value' if amount else f'Amount: {offer.amount}')
-    return parser.set_values_for(offer) if any((price, amount)) else False
+    return parser.save_values_for([offer]) if any((price, amount)) else False
 
 
 def check_input(*args, proper_values: tuple, back: bool = False, **kwargs) -> Optional[str]:

@@ -10,7 +10,7 @@ HEADERS = {
     'authority': 'funpay.ru',
     'cache-control': 'max-age=0',
     'upgrade-insecure-requests': '1',
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
                   'Chrome/90.0.4430.93 Safari/537.36',
     'sec-fetch-mode': 'navigate',
     'sec-fetch-user': '?1',
@@ -110,8 +110,8 @@ def get_user_name() -> Optional[str]:
     return user_name.text
 
 
-def set_values_for(offer: Offer) -> bool:
-    trade_url = f'{offer.game.chips_url}trade'
+def save_values_for(offers: list[Offer]) -> bool:
+    trade_url = f'{offers[0].game.chips_url}trade'
     cookie = utils.get_cookie()
     headers = HEADERS
     headers['referer'] = trade_url
@@ -123,10 +123,11 @@ def set_values_for(offer: Offer) -> bool:
     fields = form.find_all('input')
     # save previous values in form
     form_data = dict((field.get('name'), 'on' if field.has_attr('checked') else field.get('value')) for field in fields)
-
-    form_data[f'offers[{offer.server_id}][{offer.side_id}][active]'] = 'on'
-    form_data[f'offers[{offer.server_id}][{offer.side_id}][amount]'] = offer.amount
-    form_data[f'offers[{offer.server_id}][{offer.side_id}][price]'] = utils.price_without_commission(offer.price)/1000
+    for offer in offers:
+        form_data[f'offers[{offer.server_id}][{offer.side_id}][active]'] = 'on'
+        form_data[f'offers[{offer.server_id}][{offer.side_id}][amount]'] = offer.amount
+        form_data[f'offers[{offer.server_id}][{offer.side_id}][price]'] = \
+            utils.price_without_commission(offer.price)/1000
 
     post = requests.post(form['action'], data=form_data, headers=headers)
     if post:
