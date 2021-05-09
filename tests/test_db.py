@@ -10,8 +10,8 @@ import funpay_client.models as models
 def setup_database():
     engine = create_engine('sqlite://', future=True)
     models.Base.metadata.create_all(engine)
-    Session = sessionmaker(bind=engine, future=True)
-    session = Session()
+    session_ = sessionmaker(bind=engine, future=True)
+    session = session_()
     yield session
     session.close()
 
@@ -27,18 +27,18 @@ def dataset(setup_database):
     server2 = models.Server(id=112, game_id=2, name='Soulflayer')
     server3 = models.Server(id=20, game_id=1, name='Adena')
     offer1 = models.Offer(id=1, game_id=2, server_id=111, seller_name='Charles Dodgeson',
-                    side_id=1, price=130, amount=100000, online=0)
+                          side_id=1, price=130, amount=100000, online=0)
     # server not exist
     offer2 = models.Offer(id=2, game_id=2, server_id=404, seller_name='Charles Dodgeson',
-                    side_id=0, price=140, amount=100000, online=1)
+                          side_id=0, price=140, amount=100000, online=1)
     offer3 = models.Offer(id=3, game_id=1, server_id=20, seller_name='Charles Dodgeson',
-                    side_id=2, price=150, amount=100000, online=0)
+                          side_id=2, price=150, amount=100000, online=0)
     # same hash as offer1
     offer4 = models.Offer(id=4, game_id=2, server_id=111, seller_name='Charles Dodgeson',
-                    side_id=1, price=130, amount=100000, online=0)
+                          side_id=1, price=130, amount=100000, online=0)
     # as offer1 but other side
     offer5 = models.Offer(id=5, game_id=2, server_id=111, seller_name='Charles Dodgeson',
-                    side_id=0, price=130, amount=100000, online=0)
+                          side_id=0, price=130, amount=100000, online=0)
 
     session.add(game1)
     session.add(game2)
@@ -131,7 +131,7 @@ def test_write_bulk(dataset):
                {'id': 6, 'game_id': 9, 'name': 'testb'},
                {'id': 7, 'game_id': 8, 'name': 'testc'}]
     offers = [{'game_id': 2, 'server_id': 5, 'seller_name': 'testname', 'side_id': 0,
-            'price': 304, 'amount': 10000, 'online': False}]
+               'price': 304, 'amount': 10000, 'online': False}]
 
     assert len(dataset.execute(select(models.Game)).all()) == 3
     db.write_bulk('game', games, dataset)
