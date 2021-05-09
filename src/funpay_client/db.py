@@ -57,3 +57,8 @@ def drop_old_offers_for(game_id: int, session: Session = session) -> None:
     stmt = delete(Offer).where(Offer.game_id == game_id)
     session.execute(stmt)
     session.commit()
+
+
+def get_best_offer_for(server_id: int, side_id: int) -> Offer:
+    stmt = select(Offer).filter_by(server_id=server_id, side_id=side_id).order_by(Offer.price)
+    return session.execute(stmt).first()[0]
