@@ -65,15 +65,15 @@ class Offer(Base):
     game = relationship("Game", back_populates="offers")
     server = relationship("Server", back_populates="offers")
 
-    def __key(self):
+    def _key(self):
         return self.server_id, self.seller_id, self.side_id
 
     def __hash__(self):
-        return hash(self.__key())
+        return hash(self._key())
 
     def __eq__(self, other):
         if isinstance(other, Offer):
-            return self.__key() == other.__key()
+            return self._key() == other._key()
         return NotImplemented
 
     def __repr__(self):

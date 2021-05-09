@@ -2,7 +2,7 @@ from typing import List, Optional
 
 import requests
 from bs4 import BeautifulSoup
-from funpay_client import cli, db, core
+from funpay_client import db, utils
 from funpay_client.models import Offer, Game
 
 FUNPAY_URL = "https://funpay.ru/"
@@ -99,7 +99,7 @@ def update_offers_for(game: Game) -> None:
 
 
 def get_user_name() -> Optional[str]:
-    cookie = cli.get_cookie()
+    cookie = utils.get_cookie()
     if not cookie:
         return None
     req = connect_to(FUNPAY_URL, cookie)
@@ -112,7 +112,7 @@ def get_user_name() -> Optional[str]:
 
 def set_values_for(offer: Offer) -> bool:
     trade_url = f'{offer.game.chips_url}trade'
-    cookie = cli.get_cookie()
+    cookie = utils.get_cookie()
     headers = HEADERS
     headers['referer'] = trade_url
     headers['cookie'] = f'PHPSESSID={cookie["phpsessid"]}; golden_key={cookie["golden"]};'
@@ -126,7 +126,7 @@ def set_values_for(offer: Offer) -> bool:
 
     form_data[f'offers[{offer.server_id}][{offer.side_id}][active]'] = 'on'
     form_data[f'offers[{offer.server_id}][{offer.side_id}][amount]'] = offer.amount
-    form_data[f'offers[{offer.server_id}][{offer.side_id}][price]'] = core.price_without_commission(offer.price)/1000
+    form_data[f'offers[{offer.server_id}][{offer.side_id}][price]'] = utils.price_without_commission(offer.price)/1000
 
     post = requests.post(form['action'], data=form_data, headers=headers)
     if post:

@@ -1,8 +1,7 @@
 import argparse
-import os
 from typing import Optional
 
-from funpay_client import parser, db, models, core
+from funpay_client import parser, db, models, utils, core
 
 
 def get_args() -> argparse.Namespace:
@@ -45,18 +44,19 @@ class Menu:
         self.options += options
 
 
-def main_menu():
+def main_menu() -> None:
     args = get_args()
     game = db.get_game_by_name(args.game)
     menu = Menu(game.name, back=True)
-    main_update_offers = Menu(f'Update data', master=menu, callback=(parser.update_offers_for, game))
+    main_update_offers = Menu('Update data', master=menu, callback=(parser.update_offers_for, game))
     main_set_lowest = Menu('Set all my lots at the lowest price', master=menu)
     main_change_menu = Menu('Change offer', master=menu, callback=(change_menu, game))
     main_new_offer = Menu('New offer', master=menu)
     main_exit = Menu('Exit', callback=exit)
 
     menu.add_options(main_update_offers, main_set_lowest, main_change_menu, main_new_offer, main_exit)
-    return menu
+    menu()
+    return None
 
 
 def change_menu(game) -> None:
@@ -70,6 +70,7 @@ def change_menu(game) -> None:
 
     menu.add_options(change_set_lowest, change_edit, menu_back)
     menu()
+    return None
 
 
 def select_offer(game) -> Optional[models.Offer]:
@@ -87,44 +88,18 @@ def select_offer(game) -> Optional[models.Offer]:
 
 def edit_offer(offer: models.Offer) -> bool:
     price = input('Price with commission (leave blank to save old price): ')
-    if core.isfloat(price):
+    if utils.isfloat(price):
         save_price = int(float(price) * 1000)
         offer.price = save_price
-        print('Price without commission:', core.price_without_commission(save_price))
+        print('Price without commission:', utils.price_without_commission(save_price))
     else:
         print('Wrong value' if price else f'Price: {offer.price/1000}')
     amount = input('Amount (leave blank to save old price): ')
-    if core.isint(amount):
+    if utils.isint(amount):
         offer.amount = int(amount)
     else:
         print('Wrong value' if amount else f'Amount: {offer.amount}')
     return parser.set_values_for(offer) if any((price, amount)) else False
-
-
-def setup_cookie() -> tuple:
-    phpsessid_key = input('PHPSESSID key: ')
-    golden_key = input('GOLDEN key: ')
-    os.environ['FUNPAY_PHPSESSID'] = phpsessid_key
-    os.environ['FUNPAY_GOLDEN'] = golden_key
-    return phpsessid_key, golden_key
-
-
-def get_cookie() -> Optional[dict[str, Optional[str]]]:
-    def check(phpsessid_key, golden_key):
-        return True if all((phpsessid_key, golden_key)) else False
-
-    phpsessid_key = os.getenv('FUNPAY_PHPSESSID')
-    golden_key = os.getenv('FUNPAY_GOLDEN')
-    if check(phpsessid_key, golden_key):
-        return {'phpsessid': phpsessid_key, 'golden': golden_key}
-
-    print('Cookie not setup, price change is impossible')
-    print('You can setup persistent cookie with FUNPAY_PHPSESSID and FUNPAY_GOLDEN system variables')
-    raw_input = input('Setup cookie for this session? y/N: ')
-    if raw_input == 'y':
-        setup_cookie()
-        get_cookie()
-    return None
 
 
 def check_input(*args, proper_values: tuple, back: bool = False, **kwargs) -> Optional[str]:
@@ -133,6 +108,6 @@ def check_input(*args, proper_values: tuple, back: bool = False, **kwargs) -> Op
         if raw not in proper_values:
             print(raw, 'is not an option')
             if back:
-                return
+                return None
             continue
         return raw

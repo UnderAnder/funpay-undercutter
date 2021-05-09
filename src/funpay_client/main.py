@@ -1,6 +1,4 @@
-from funpay_client import cli
-from funpay_client import db
-from funpay_client import parser
+from funpay_client import parser, db, cli
 
 
 def main():
@@ -13,8 +11,7 @@ def main():
         servers = parser.get_servers_for(game)
         db.write_bulk('server', servers)
 
-    menu = cli.main_menu()
-    menu()
+    cli.main_menu()
 
 
 if __name__ == "__main__":
