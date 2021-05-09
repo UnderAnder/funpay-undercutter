@@ -64,7 +64,8 @@ def change_menu(game) -> None:
     if not offer:
         return None
     menu = Menu('Change offer', master=main_menu, back=True)
-    change_set_lowest = Menu('Set offer to the lowest price', master=menu, callback=(core.set_offer_best_price, offer))
+    change_set_lowest = Menu('Set offer to the lowest price', master=menu,
+                             callback=(core.set_offers_best_price, [offer]))
     change_edit = Menu('Edit offer', callback=(edit_offer, offer))
     menu_back = Menu('Back', callback=main_menu)
 
