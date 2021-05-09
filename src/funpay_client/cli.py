@@ -49,56 +49,56 @@ def main_menu():
     args = get_args()
     game = db.get_game_by_name(args.game)
     menu = Menu(game.name, back=True)
-    main_update_ads = Menu(f'Update data', callback=(parser.update_ads_for, game))
+    main_update_offers = Menu(f'Update data', master=menu, callback=(parser.update_offers_for, game))
     main_set_lowest = Menu('Set all my lots at the lowest price', master=menu)
-    main_change_menu = Menu('Change ad', master=menu, callback=(change_menu, game))
-    main_new_ad = Menu('New ad', master=menu)
+    main_change_menu = Menu('Change offer', master=menu, callback=(change_menu, game))
+    main_new_offer = Menu('New offer', master=menu)
     main_exit = Menu('Exit', callback=exit)
 
-    menu.add_options(main_update_ads, main_set_lowest, main_change_menu, main_new_ad, main_exit)
+    menu.add_options(main_update_offers, main_set_lowest, main_change_menu, main_new_offer, main_exit)
     return menu
 
 
 def change_menu(game) -> None:
-    ad = select_ad(game)
-    if not ad:
+    offer = select_offer(game)
+    if not offer:
         return None
-    menu = Menu('Change ad', master=main_menu, back=True)
-    change_set_lowest = Menu('Set ad to the lowest price', master=menu)
-    change_edit = Menu('Edit ad', callback=(edit_ad, ad))
+    menu = Menu('Change offer', master=main_menu, back=True)
+    change_set_lowest = Menu('Set offer to the lowest price', master=menu)
+    change_edit = Menu('Edit offer', callback=(edit_offer, offer))
     menu_back = Menu('Back', callback=main_menu)
 
     menu.add_options(change_set_lowest, change_edit, menu_back)
     menu()
 
 
-def select_ad(game) -> Optional[models.Ad]:
+def select_offer(game) -> Optional[models.Offer]:
     user_name = parser.get_user_name()
     if not user_name:
         return None
-    user_ads = db.get_ads_for(user_name, game.id)
-    if not user_ads:
+    user_offers = db.get_offers_for(user_name, game.id)
+    if not user_offers:
         return None
-    print('\n'.join(f'{i}. {ad}' for i, ad in enumerate(user_ads, start=1)))
-    allowed = tuple(str(i) for i in range(1, len(user_ads) + 1))
+    print('\n'.join(f'{i}. {offer}' for i, offer in enumerate(user_offers, start=1)))
+    allowed = tuple(str(i) for i in range(1, len(user_offers) + 1))
     user_choice = check_input('Select one: ', proper_values=allowed)
-    return user_ads[int(user_choice) - 1]
+    return user_offers[int(user_choice) - 1]
 
 
-def edit_ad(ad: models.Ad) -> bool:
+def edit_offer(offer: models.Offer) -> bool:
     price = input('Price with commission (leave blank to save old price): ')
     if core.isfloat(price):
         save_price = int(float(price) * 1000)
-        ad.price = save_price
+        offer.price = save_price
         print('Price without commission:', core.price_without_commission(save_price))
     else:
-        print('Wrong value' if price else f'Price: {ad.price/1000}')
+        print('Wrong value' if price else f'Price: {offer.price/1000}')
     amount = input('Amount (leave blank to save old price): ')
     if core.isint(amount):
-        ad.amount = int(amount)
+        offer.amount = int(amount)
     else:
-        print('Wrong value' if amount else f'Amount: {ad.amount}')
-    return parser.set_values_for(ad) if any((price, amount)) else False
+        print('Wrong value' if amount else f'Amount: {offer.amount}')
+    return parser.set_values_for(offer) if any((price, amount)) else False
 
 
 def setup_cookie() -> tuple:

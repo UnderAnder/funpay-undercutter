@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy import select, delete
 from sqlalchemy.orm import sessionmaker
 
-from funpay_client.models import engine, Game, Server, Ad
+from funpay_client.models import engine, Game, Server, Offer
 
 Session = sessionmaker(engine, future=True)
 session = Session()
@@ -22,8 +22,8 @@ def write_bulk(type_, list_: List[dict], session: Session = session) -> None:
         objects = [Game(**el) for el in list_]
     elif type_ == 'server':
         objects = [Server(**el) for el in list_]
-    elif type_ == 'ad':
-        objects = [Ad(**el) for el in list_]
+    elif type_ == 'offer':
+        objects = [Offer(**el) for el in list_]
     else:
         raise ValueError
     session.bulk_save_objects(objects)
@@ -40,20 +40,20 @@ def get_server_by_name(name: str, game_id: int, session: Session = session) -> S
     return session.execute(stmt).scalar()
 
 
-def get_ads_by_server(server_id: int, session: Session = session) -> List[Ad]:
-    stmt = select(Ad).filter_by(server_id=server_id)
+def get_offers_by_server(server_id: int, session: Session = session) -> List[Offer]:
+    stmt = select(Offer).filter_by(server_id=server_id)
     return session.execute(stmt).scalars().all()
 
 
-def get_ads_for(user_name: str, game_id: int = None, session: Session = session) -> List[Ad]:
+def get_offers_for(user_name: str, game_id: int = None, session: Session = session) -> List[Offer]:
     if game_id:
-        stmt = select(Ad).filter_by(game_id=game_id, seller_name=user_name)
+        stmt = select(Offer).filter_by(game_id=game_id, seller_name=user_name)
     else:
-        stmt = select(Ad).filter_by(seller_name=user_name)
+        stmt = select(Offer).filter_by(seller_name=user_name)
     return session.execute(stmt).scalars().all()
 
 
-def drop_old_ads_for(game_id: int, session: Session = session) -> None:
-    stmt = delete(Ad).where(Ad.game_id == game_id)
+def drop_old_offers_for(game_id: int, session: Session = session) -> None:
+    stmt = delete(Offer).where(Offer.game_id == game_id)
     session.execute(stmt)
     session.commit()

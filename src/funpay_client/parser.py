@@ -3,7 +3,7 @@ from typing import List, Optional
 import requests
 from bs4 import BeautifulSoup
 from funpay_client import cli, db, core
-from funpay_client.models import Ad, Game
+from funpay_client.models import Offer, Game
 
 FUNPAY_URL = "https://funpay.ru/"
 HEADERS = {
@@ -48,54 +48,54 @@ def get_servers_for(game: Game) -> List[dict]:
     print('Loading servers names from', game.chips_url)
     req = connect_to(game.chips_url)
     soup = BeautifulSoup(req.content, 'lxml')
-    ads_table = soup.find('div', class_='tc table-hover table-clickable showcase-table tc-sortable tc-lazyload')
-    ads = ads_table.find_all('a', class_='tc-item')
-    for ad in ads:
-        server_id = ad["data-server"]
+    offers_table = soup.find('div', class_='tc table-hover table-clickable showcase-table tc-sortable tc-lazyload')
+    offers = offers_table.find_all('a', class_='tc-item')
+    for offer in offers:
+        server_id = offer["data-server"]
         server_id = 0 if server_id == '*' else int(server_id)
         if server_id not in tmp:
             tmp.append(server_id)
-            server_name = ad.find('div', class_='tc-server').text
+            server_name = offer.find('div', class_='tc-server').text
             result.append({'id': server_id, 'game_id': game.id, 'name': server_name})
     return result
 
 
-def get_ads_for(game: Game) -> List[dict]:
-    print('Loading ads from', game.chips_url)
+def get_offers_for(game: Game) -> List[dict]:
+    print('Loading offers from', game.chips_url)
     result = list()
     req = connect_to(game.chips_url)
     soup = BeautifulSoup(req.content, 'lxml')
-    ads_table = soup.find('div', class_='tc table-hover table-clickable showcase-table tc-sortable tc-lazyload')
-    ads = ads_table.find_all('a', class_='tc-item')
-    for ad in ads:
-        href = ad['href'].split('=')[1].split('-')  # href like https://funpay.ru/chips/offer?id=109054-22-24-159-0
+    offers_table = soup.find('div', class_='tc table-hover table-clickable showcase-table tc-sortable tc-lazyload')
+    offers = offers_table.find_all('a', class_='tc-item')
+    for offer in offers:
+        href = offer['href'].split('=')[1].split('-')  # href like https://funpay.ru/chips/offer?id=109054-22-24-159-0
         seller_id = int(href[0])
         game_id = int(href[1])
         chip_id = int(href[2])
         server_id = int(href[3])
         side_id = int(href[4])
         try:
-            side_name = ad.find('div', class_='tc-side').text
+            side_name = offer.find('div', class_='tc-side').text
         except KeyError:
             side_name = ''
         try:
-            online = bool(ad['data-online'])
+            online = bool(offer['data-online'])
         except KeyError:
             online = False
-        price = ad.find('div', class_='tc-price').find('div').next_element.replace(' ', '')
+        price = offer.find('div', class_='tc-price').find('div').next_element.replace(' ', '')
         price = int(float(price) * 1000)
-        amount = int(ad.find('div', class_='tc-amount').next.replace(' ', ''))
-        name = ad.find('div', class_='media-user-name').text
+        amount = int(offer.find('div', class_='tc-amount').next.replace(' ', ''))
+        name = offer.find('div', class_='media-user-name').text
         result.append({'seller_id': seller_id, 'game_id': game_id, 'chip_id': chip_id,
                        'server_id': server_id, 'seller_name': name, 'side_id': side_id,
                        'side_name': side_name, 'price': price, 'amount': amount, 'online': online})
     return result
 
 
-def update_ads_for(game: Game) -> None:
-    db.drop_old_ads_for(game.id)
-    ads = get_ads_for(game)
-    db.write_bulk('ad', ads)
+def update_offers_for(game: Game) -> None:
+    db.drop_old_offers_for(game.id)
+    offers = get_offers_for(game)
+    db.write_bulk('offer', offers)
 
 
 def get_user_name() -> Optional[str]:
@@ -110,8 +110,8 @@ def get_user_name() -> Optional[str]:
     return user_name.text
 
 
-def set_values_for(ad: Ad) -> bool:
-    trade_url = f'{ad.game.chips_url}trade'
+def set_values_for(offer: Offer) -> bool:
+    trade_url = f'{offer.game.chips_url}trade'
     cookie = cli.get_cookie()
     headers = HEADERS
     headers['referer'] = trade_url
@@ -124,9 +124,9 @@ def set_values_for(ad: Ad) -> bool:
     # save previous values in form
     form_data = dict((field.get('name'), 'on' if field.has_attr('checked') else field.get('value')) for field in fields)
 
-    form_data[f'offers[{ad.server_id}][{ad.side_id}][active]'] = 'on'
-    form_data[f'offers[{ad.server_id}][{ad.side_id}][amount]'] = ad.amount
-    form_data[f'offers[{ad.server_id}][{ad.side_id}][price]'] = core.price_without_commission(ad.price)/1000
+    form_data[f'offers[{offer.server_id}][{offer.side_id}][active]'] = 'on'
+    form_data[f'offers[{offer.server_id}][{offer.side_id}][amount]'] = offer.amount
+    form_data[f'offers[{offer.server_id}][{offer.side_id}][price]'] = core.price_without_commission(offer.price)/1000
 
     post = requests.post(form['action'], data=form_data, headers=headers)
     if post:

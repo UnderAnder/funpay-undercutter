@@ -13,7 +13,7 @@ class Game(Base):
     chips_url = Column(String(50))
 
     servers = relationship("Server", back_populates="game")
-    ads = relationship("Ad", back_populates="game")
+    offers = relationship("Offer", back_populates="game")
 
     def __hash__(self):
         return hash(self.id)
@@ -34,7 +34,7 @@ class Server(Base):
     name = Column(String(50))
 
     game = relationship("Game", back_populates="servers")
-    ads = relationship("Ad", back_populates="server")
+    offers = relationship("Offer", back_populates="server")
 
     def __hash__(self):
         return hash(self.id)
@@ -48,8 +48,8 @@ class Server(Base):
         return f"Server(id={self.id!r}, game_id={self.game_id!r}, name={self.name!r})"
 
 
-class Ad(Base):
-    __tablename__ = 'ad'
+class Offer(Base):
+    __tablename__ = 'offer'
     id = Column(Integer, primary_key=True)
     seller_id = Column(Integer)
     seller_name = Column(String(50))
@@ -62,8 +62,8 @@ class Ad(Base):
     amount = Column(Integer)
     online = Column(Boolean)
 
-    game = relationship("Game", back_populates="ads")
-    server = relationship("Server", back_populates="ads")
+    game = relationship("Game", back_populates="offers")
+    server = relationship("Server", back_populates="offers")
 
     def __key(self):
         return self.server_id, self.seller_id, self.side_id
@@ -72,12 +72,12 @@ class Ad(Base):
         return hash(self.__key())
 
     def __eq__(self, other):
-        if isinstance(other, Ad):
+        if isinstance(other, Offer):
             return self.__key() == other.__key()
         return NotImplemented
 
     def __repr__(self):
-        return f"Ad(server_id={self.server_id!r}, seller_name={self.seller_name!r}, side={self.side_name!r}," \
+        return f"Offer(server_id={self.server_id!r}, seller_name={self.seller_name!r}, side={self.side_name!r}," \
                f"price={self.price!r}, amount={self.amount!r}, online={self.online!r})"
 
     def __str__(self):
