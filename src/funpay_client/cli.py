@@ -7,7 +7,8 @@ from funpay_client import parser, db, models, utils, core
 def get_args() -> argparse.Namespace:
     parse = argparse.ArgumentParser(description='Funpay funpay_client')
     parse.add_argument('game', type=str, default='World of Warcraft RU, EU', nargs='?',
-                       metavar='Game name', help='e.g "World of Warcraft RU, EU", "Lineage 2 Classic RU"')
+                       metavar='Game name', help='Name with region in double quotes. '
+                                                 'Default: "World of Warcraft RU, EU"')
     parse.add_argument('-ra', action='store_true', help='Raise all offers, without interactive mode')
     return parse.parse_args()
 
