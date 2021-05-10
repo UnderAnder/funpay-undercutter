@@ -52,7 +52,7 @@ def main_menu() -> None:
     main_set_lowest = Menu('Set all my lots at the lowest price', master=menu,
                            callback=(core.all_my_offers_best_price_for, game.id))
     main_change_menu = Menu('Change offer', master=menu, callback=(change_menu, game))
-    main_exit = Menu('Exit', callback=exit)
+    main_exit = Menu('Exit', callback=core.exit_)
 
     menu.add_options(main_update_offers, main_set_lowest, main_change_menu, main_exit)
     menu()
