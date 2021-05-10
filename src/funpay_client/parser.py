@@ -1,4 +1,6 @@
+import sys
 from functools import cache
+from time import sleep
 from typing import List, Optional
 
 import requests
@@ -138,9 +140,18 @@ def connect_to(target: str = None, cookie: dict = None) -> requests.Response:
     headers = HEADERS
     headers['referer'] = target
     headers['cookie'] = f'PHPSESSID={cookie["phpsessid"]}; golden_key={cookie["golden"]};' if cookie else ''
-
-    req = session.get(target, headers=headers)
-    if not req:
-        print(f"Unable to connect to {target}, {req.status_code}")
-        exit()
-    return req
+    tries = 5
+    for n in range(tries):
+        try:
+            print('Get data from', target)
+            req = session.get(target, headers=headers)
+            req.raise_for_status()
+        except requests.exceptions.RequestException as err:
+            print('Connection error!', err)
+            print('Retry in 10 sec')
+        else:
+            return req
+        if n == tries - 1:
+            print('Maximum number of attempts, try later')
+            sys.exit()
+        sleep(10)
