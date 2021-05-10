@@ -5,12 +5,12 @@ from funpay_client import parser, db, models, utils, core
 
 
 def get_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description='Funpay funpay_client')
-    parser.add_argument('game', type=str, default='World of Warcraft RU, EU', nargs='?',
+    parse = argparse.ArgumentParser(description='Funpay funpay_client')
+    parse.add_argument('game', type=str, default='World of Warcraft RU, EU', nargs='?',
                         metavar='Game name', help='e.g "World of Warcraft RU, EU"')
-    parser.add_argument('server', type=str, default='Азурегос', nargs='?', metavar='Server name',
-                        help='e.g "Silvermoon"')
-    return parser.parse_args()
+    parse.add_argument('-ra', action='store_true',
+                        help='Raises all offers, without interactive mode')
+    return parse.parse_args()
 
 
 class Menu:
@@ -48,7 +48,7 @@ def main_menu() -> None:
     args = get_args()
     game = db.get_game_by_name(args.game)
     menu = Menu(game.name, back=True)
-    main_update_offers = Menu('Update data', master=menu, callback=(parser.update_offers_for, game))
+    main_update_offers = Menu('Update data', master=menu, callback=(core.update_offers_for, game))
     main_set_lowest = Menu('Set all my lots at the lowest price', master=menu,
                            callback=(core.all_my_offers_best_price_for, game.id))
     main_change_menu = Menu('Change offer', master=menu, callback=(change_menu, game))

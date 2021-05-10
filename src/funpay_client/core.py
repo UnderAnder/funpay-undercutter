@@ -3,7 +3,7 @@ from statistics import mean
 from typing import Optional
 
 from funpay_client import db, parser
-from funpay_client.models import Offer
+from funpay_client.models import Offer, Game
 
 
 def set_offers_best_price(offers: list[Offer]) -> bool:
@@ -35,6 +35,12 @@ def my_offers_for(game_id: int) -> Optional[list[Offer]]:
 def min_price_rules(offer: Offer):
     min_price_avg = mean(db.get_n_lowest_price_for(offer.server_id, offer.side_id, 5))
     return int(min_price_avg * 0.9)
+
+
+def update_offers_for(game: Game) -> None:
+    db.drop_old_offers_for(game.id)
+    offers = parser.get_offers_for(game)
+    db.write_bulk('offer', offers)
 
 
 def exit_() -> None:

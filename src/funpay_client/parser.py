@@ -3,7 +3,7 @@ from typing import List, Optional
 
 import requests
 from bs4 import BeautifulSoup
-from funpay_client import db, utils
+from funpay_client import utils
 from funpay_client.models import Offer, Game
 
 FUNPAY_URL = "https://funpay.ru/"
@@ -91,12 +91,6 @@ def get_offers_for(game: Game) -> List[dict]:
                        'server_id': server_id, 'seller_name': name, 'side_id': side_id,
                        'side_name': side_name, 'price': price, 'amount': amount, 'online': online})
     return result
-
-
-def update_offers_for(game: Game) -> None:
-    db.drop_old_offers_for(game.id)
-    offers = get_offers_for(game)
-    db.write_bulk('offer', offers)
 
 
 @cache

@@ -1,4 +1,4 @@
-from funpay_client import parser, db, cli
+from funpay_client import parser, db, cli, core
 
 
 def main():
@@ -10,8 +10,11 @@ def main():
     if not db.check_records_filled('Server', ('game_id', game.id)):
         servers = parser.get_servers_for(game)
         db.write_bulk('server', servers)
-
-    cli.main_menu()
+    if args.ra:
+        core.update_offers_for(game)
+        core.all_my_offers_best_price_for(game.id)
+    else:
+        cli.main_menu()
 
 
 if __name__ == "__main__":
