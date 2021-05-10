@@ -31,8 +31,8 @@ class Menu:
             else:
                 raise ValueError('Callback is not a list, tuple or callable')
         if self.options:
-            print('\n'.join(f"{i}. {option.name}" for i, option in enumerate(self.options, start=1)))
-            allowed = tuple(str(i) for i in range(1, len(self.options) + 1))
+            print('\n'.join(f"{(i + 1) % len(self.options)}. {option.name}" for i, option in enumerate(self.options)))
+            allowed = tuple(str(i) for i in range(len(self.options)))
             user_choice = check_input(proper_values=allowed, back=self.back)
             if not user_choice:
                 self()
