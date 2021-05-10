@@ -52,10 +52,9 @@ def main_menu() -> None:
     main_set_lowest = Menu('Set all my lots at the lowest price', master=menu,
                            callback=(core.all_my_offers_best_price_for, game.id))
     main_change_menu = Menu('Change offer', master=menu, callback=(change_menu, game))
-    main_new_offer = Menu('New offer', master=menu)
     main_exit = Menu('Exit', callback=exit)
 
-    menu.add_options(main_update_offers, main_set_lowest, main_change_menu, main_new_offer, main_exit)
+    menu.add_options(main_update_offers, main_set_lowest, main_change_menu, main_exit)
     menu()
     return None
 
@@ -76,7 +75,7 @@ def change_menu(game) -> None:
 
 
 def select_offer(game) -> Optional[models.Offer]:
-    user_offers = core.my_offers(game.id)
+    user_offers = core.my_offers_for(game.id)
     if not user_offers:
         return None
     print('\n'.join(f'{i}. {offer}' for i, offer in enumerate(user_offers, start=1)))
