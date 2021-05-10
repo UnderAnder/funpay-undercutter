@@ -1,4 +1,3 @@
-import sys
 from statistics import mean
 from typing import Optional
 
@@ -35,7 +34,7 @@ def my_offers_for(game_id: int) -> Optional[list[Offer]]:
     return user_offers
 
 
-def min_price_rules(offer: Offer):
+def min_price_rules(offer: Offer) -> int:
     min_price_avg = mean(db.get_n_lowest_price_for(offer.server_id, offer.side_id, 5))
     return int(min_price_avg * 0.9)
 
@@ -44,8 +43,3 @@ def update_offers_for(game: Game) -> None:
     db.drop_old_offers_for(game.id)
     offers = parser.get_offers_for(game)
     db.write_bulk('offer', offers)
-
-
-def exit_() -> None:
-    db.sess.close()
-    sys.exit()

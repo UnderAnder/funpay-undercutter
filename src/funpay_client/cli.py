@@ -7,9 +7,8 @@ from funpay_client import parser, db, models, utils, core
 def get_args() -> argparse.Namespace:
     parse = argparse.ArgumentParser(description='Funpay funpay_client')
     parse.add_argument('game', type=str, default='World of Warcraft RU, EU', nargs='?',
-                        metavar='Game name', help='e.g "World of Warcraft RU, EU"')
-    parse.add_argument('-ra', action='store_true',
-                        help='Raises all offers, without interactive mode')
+                       metavar='Game name', help='e.g "World of Warcraft RU, EU", "Lineage 2 Classic RU"')
+    parse.add_argument('-ra', action='store_true', help='Raise all offers, without interactive mode')
     return parse.parse_args()
 
 
@@ -49,14 +48,13 @@ def main_menu() -> None:
     game = db.get_game_by_name(args.game)
     menu = Menu(game.name, back=True)
     main_update_offers = Menu('Update data', master=menu, callback=(core.update_offers_for, game))
-    main_set_lowest = Menu('Set all my lots at the lowest price', master=menu,
+    main_set_lowest = Menu('Raise all my offers', master=menu,
                            callback=(core.all_my_offers_best_price_for, game.id))
     main_change_menu = Menu('Change offer', master=menu, callback=(change_menu, game))
-    main_exit = Menu('Exit', callback=core.exit_)
+    main_exit = Menu('Exit', callback=utils.exit_)
 
     menu.add_options(main_update_offers, main_set_lowest, main_change_menu, main_exit)
     menu()
-    return None
 
 
 def change_menu(game) -> None:
@@ -64,7 +62,7 @@ def change_menu(game) -> None:
     if not offer:
         return None
     menu = Menu('Change offer', master=main_menu, back=True)
-    change_set_lowest = Menu('Set offer to the lowest price', master=menu,
+    change_set_lowest = Menu('Raise offer', master=menu,
                              callback=(core.set_offers_best_price, [offer]))
     change_edit = Menu('Edit offer', callback=(edit_offer, offer))
     menu_back = Menu('Back', callback=main_menu)
@@ -77,6 +75,7 @@ def change_menu(game) -> None:
 def select_offer(game) -> Optional[models.Offer]:
     user_offers = core.my_offers_for(game.id)
     if not user_offers:
+        print('No active offers found')
         return None
     print('\n'.join(f'{i}. {offer}' for i, offer in enumerate(user_offers, start=1)))
     allowed = tuple(str(i) for i in range(1, len(user_offers) + 1))
@@ -91,12 +90,12 @@ def edit_offer(offer: models.Offer) -> bool:
         offer.price = save_price
         print('Price without commission:', utils.price_without_commission(save_price))
     else:
-        print('Wrong value' if price else f'Price: {offer.price/1000}')
+        print('Wrong value, should be like 1.23' if price else f'Price: {offer.price / 1000}')
     amount = input('Amount (leave blank to save old price): ')
     if utils.isint(amount):
         offer.amount = int(amount)
     else:
-        print('Wrong value' if amount else f'Amount: {offer.amount}')
+        print('Wrong value, should be like 55000' if amount else f'Amount: {offer.amount}')
     return parser.save_values_for([offer]) if any((price, amount)) else False
 
 

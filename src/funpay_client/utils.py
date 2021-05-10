@@ -1,5 +1,8 @@
 import os
+import sys
 from typing import Optional
+
+from funpay_client import db
 
 
 def setup_cookie() -> tuple:
@@ -46,3 +49,8 @@ def isint(value) -> bool:
         return True
     except ValueError:
         return False
+
+
+def exit_(status: int = None) -> None:
+    db.sess.close()
+    sys.exit(status)

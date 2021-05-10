@@ -1,4 +1,3 @@
-import sys
 from functools import cache
 from time import sleep
 from typing import List, Optional
@@ -48,11 +47,9 @@ def get_games() -> List[dict]:
 def get_servers_for(game: Game) -> List[dict]:
     result = list()
     tmp = list()
-    print('Loading servers names from', game.chips_url)
     req = connect_to(game.chips_url)
     soup = BeautifulSoup(req.content, 'lxml')
-    offers_table = soup.find('div', class_='tc table-hover table-clickable showcase-table tc-sortable tc-lazyload')
-    offers = offers_table.find_all('a', class_='tc-item')
+    offers = soup.find_all('a', class_='tc-item')
     for offer in offers:
         server_id = offer["data-server"]
         server_id = 0 if server_id == '*' else int(server_id)
@@ -64,12 +61,10 @@ def get_servers_for(game: Game) -> List[dict]:
 
 
 def get_offers_for(game: Game) -> List[dict]:
-    print('Loading offers from', game.chips_url)
     result = list()
     req = connect_to(game.chips_url)
     soup = BeautifulSoup(req.content, 'lxml')
-    offers_table = soup.find('div', class_='tc table-hover table-clickable showcase-table tc-sortable tc-lazyload')
-    offers = offers_table.find_all('a', class_='tc-item')
+    offers = soup.find_all('a', class_='tc-item')
     for offer in offers:
         href = offer['href'].split('=')[1].split('-')  # href like https://funpay.ru/chips/offer?id=109054-22-24-159-0
         seller_id = int(href[0])
@@ -79,7 +74,7 @@ def get_offers_for(game: Game) -> List[dict]:
         side_id = int(href[4])
         try:
             side_name = offer.find('div', class_='tc-side').text
-        except KeyError:
+        except (KeyError, AttributeError):
             side_name = ''
         try:
             online = bool(offer['data-online'])
@@ -153,5 +148,5 @@ def connect_to(target: str = None, cookie: dict = None) -> requests.Response:
             return req
         if n == tries - 1:
             print('Maximum number of attempts, try later')
-            sys.exit()
+            utils.exit_(1)
         sleep(10)
