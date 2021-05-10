@@ -10,8 +10,11 @@ def set_offers_best_price(offers: list[Offer]) -> bool:
     undercut = 10
     for offer in offers:
         curr_best_offer = db.get_best_offer_for(offer.server_id, offer.side_id)
+        if offer is curr_best_offer:
+            print(f'Skip for {offer}:', 'Already the best offer', sep='\n')
+            continue
         if curr_best_offer.price < min_price_rules(offer):
-            print(offer, 'Lowest offer less than minimal price, skipped', sep='\n')
+            print(f'Skip for {offer}:', 'The best offer less than minimal price', sep='\n')
             continue
         offer.price = curr_best_offer.price - undercut
     return parser.save_values_for(offers)
