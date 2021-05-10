@@ -1,3 +1,4 @@
+import ssl
 from functools import cache
 from time import sleep
 from typing import List, Optional
@@ -6,6 +7,8 @@ import requests
 from bs4 import BeautifulSoup
 from funpay_client import utils
 from funpay_client.models import Offer, Game
+from requests import adapters
+from urllib3 import poolmanager
 
 FUNPAY_URL = "https://funpay.ru/"
 HEADERS = {
@@ -22,6 +25,20 @@ HEADERS = {
     'accept-encoding': 'gzip, deflate, br',
     'accept-language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
 }
+
+
+# workaround for https://github.com/psf/requests/issues/4775
+class TLSAdapter(adapters.HTTPAdapter):
+    def init_poolmanager(self, connections, maxsize, block=False, **pool_kwargs):
+        """Create and initialize the urllib3 PoolManager."""
+        ctx = ssl.create_default_context()
+        ctx.set_ciphers('DEFAULT@SECLEVEL=1')
+        self.poolmanager = poolmanager.PoolManager(
+                num_pools=connections,
+                maxsize=maxsize,
+                block=block,
+                ssl_version=ssl.PROTOCOL_TLS,
+                ssl_context=ctx)
 
 
 def get_games() -> List[dict]:
@@ -132,6 +149,7 @@ def save_values_for(offers: list[Offer]) -> bool:
 
 def connect_to(target: str = None, cookie: dict = None) -> requests.Response:
     session = requests.Session()
+    session.mount('https://', TLSAdapter())
     headers = HEADERS
     headers['referer'] = target
     headers['cookie'] = f'PHPSESSID={cookie["phpsessid"]}; golden_key={cookie["golden"]};' if cookie else ''
