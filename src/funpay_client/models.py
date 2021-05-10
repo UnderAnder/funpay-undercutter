@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
 Base = declarative_base()
-engine = create_engine('sqlite+pysqlite:///../../app.db', echo=True, future=True)
+engine = create_engine('sqlite+pysqlite:///../../app.db', future=True)
 
 
 class Game(Base):

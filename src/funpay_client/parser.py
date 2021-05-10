@@ -4,11 +4,11 @@ from time import sleep
 from typing import List, Optional
 
 import requests
+from requests import adapters
+from urllib3 import poolmanager
 from bs4 import BeautifulSoup
 from funpay_client import utils
 from funpay_client.models import Offer, Game
-from requests import adapters
-from urllib3 import poolmanager
 
 FUNPAY_URL = "https://funpay.ru/"
 HEADERS = {
