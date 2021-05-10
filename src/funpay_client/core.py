@@ -13,7 +13,7 @@ def set_offers_best_price(offers: list[Offer]) -> bool:
             print(f'Skip for {offer}:', 'Already the best offer', sep='\n')
             continue
         if curr_best_offer.price < min_price_rules(offer):
-            print(f'Skip for {offer}:', 'The best offer less than minimal price', sep='\n')
+            print(f'Skip for {offer}:', 'The best offer is less than minimal price', sep='\n')
             continue
         offer.price = curr_best_offer.price - undercut
     return parser.save_values_for(offers)
