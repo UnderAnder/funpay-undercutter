@@ -31,10 +31,10 @@ def dataset(setup_database):
     offer2 = models.Offer(id=2, game_id=2, server_id=404, seller_name='Charles Dodgeson',
                           side_id=0, price=140, amount=100000, online=1)
     offer3 = models.Offer(id=3, game_id=1, server_id=20, seller_name='Charles Dodgeson',
-                          side_id=2, price=150, amount=100000, online=0)
+                          side_id=2, price=150, amount=100000, online=1)
     # same hash as offer1
     offer4 = models.Offer(id=4, game_id=2, server_id=111, seller_name='Charles Dodgeson',
-                          side_id=1, price=130, amount=100000, online=0)
+                          side_id=1, price=120, amount=5000, online=1)
     # as offer1 but other side
     offer5 = models.Offer(id=5, game_id=2, server_id=111, seller_name='Charles Dodgeson',
                           side_id=0, price=130, amount=100000, online=0)
