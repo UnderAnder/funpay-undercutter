@@ -6,10 +6,10 @@ from funpay_client import parser, db, models, utils, core
 
 def get_args() -> argparse.Namespace:
     parse = argparse.ArgumentParser(description='Funpay funpay_client')
-    parse.add_argument('game', type=str, default='World of Warcraft RU, EU', nargs='?',
-                       metavar='Game name', help='Name with region in double quotes. '
-                                                 'Default: "World of Warcraft RU, EU"')
-    parse.add_argument('-ra', action='store_true', help='Raise all offers, without interactive mode')
+    parse.add_argument('game', type=str, default='World of Warcraft RU, EU', nargs='?', metavar='Game name',
+                       help='Name with region in double quotes. Default: "World of Warcraft RU, EU"')
+    parse.add_argument('-ra', action='store_true', default=False,
+                       help='Automatic undercutting of all offers for a specified game , without interactive mode')
     return parse.parse_args()
 
 
@@ -49,7 +49,7 @@ def main_menu() -> None:
     game = db.get_game_by_name(args.game)
     menu = Menu(game.name, back=True)
     main_update_offers = Menu('Update data', master=menu, callback=(core.update_offers_for, game))
-    main_set_lowest = Menu('Raise all my offers', master=menu,
+    main_set_lowest = Menu('Undercut all offers', master=menu,
                            callback=(core.set_best_price_all_for, game.id))
     main_change_menu = Menu('Change offer', master=menu, callback=(change_menu, game))
     main_exit = Menu('Exit', callback=utils.exit_)
@@ -63,7 +63,7 @@ def change_menu(game) -> None:
     if not offer:
         return None
     menu = Menu('Change offer', master=main_menu, back=True)
-    change_set_lowest = Menu('Raise offer', master=menu,
+    change_set_lowest = Menu('Undercut', master=menu,
                              callback=(core.set_offers_best_price, [offer]))
     change_edit = Menu('Edit offer', callback=(edit_offer, offer))
     menu_back = Menu('Back', callback=main_menu)
