@@ -41,6 +41,10 @@ class TLSAdapter(adapters.HTTPAdapter):
                 ssl_context=ctx)
 
 
+session = requests.Session()
+session.mount('https://', TLSAdapter())
+
+
 def get_games() -> List[dict]:
     result = list()
 
@@ -139,7 +143,7 @@ def save_values_for(offers: list[Offer]) -> bool:
         form_data[f'offers[{offer.server_id}][{offer.side_id}][price]'] = \
             utils.price_without_commission(offer.price)/1000
 
-    post = requests.post(form['action'], data=form_data, headers=headers)
+    post = session.post(form['action'], data=form_data, headers=headers)
     if post:
         print('New values successfully saved')
     else:
@@ -148,8 +152,6 @@ def save_values_for(offers: list[Offer]) -> bool:
 
 
 def connect_to(target: str = None, cookie: dict = None) -> requests.Response:
-    session = requests.Session()
-    session.mount('https://', TLSAdapter())
     headers = HEADERS
     headers['referer'] = target
     headers['cookie'] = f'PHPSESSID={cookie["phpsessid"]}; golden_key={cookie["golden"]};' if cookie else ''
