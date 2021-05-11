@@ -66,5 +66,4 @@ def get_best_offer_for(server_id: int, side_id: int, session: Session = sess) ->
 
 def get_n_lowest_price_for(server_id: int, side_id: int, n: int, session: Session = sess) -> list[int]:
     stmt = select(Offer.price).filter_by(server_id=server_id, side_id=side_id, online=1).order_by(Offer.price).limit(n)
-    result = session.execute(stmt).scalars().all()
-    return result
+    return session.execute(stmt).scalars().all()
