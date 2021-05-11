@@ -50,7 +50,7 @@ def main_menu() -> None:
     menu = Menu(game.name, back=True)
     main_update_offers = Menu('Update data', master=menu, callback=(core.update_offers_for, game))
     main_set_lowest = Menu('Raise all my offers', master=menu,
-                           callback=(core.all_my_offers_best_price_for, game.id))
+                           callback=(core.set_best_price_all_for, game.id))
     main_change_menu = Menu('Change offer', master=menu, callback=(change_menu, game))
     main_exit = Menu('Exit', callback=utils.exit_)
 

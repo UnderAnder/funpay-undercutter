@@ -19,7 +19,7 @@ def set_offers_best_price(offers: list[Offer]) -> bool:
     return parser.save_values_for(offers)
 
 
-def all_my_offers_best_price_for(game_id: int) -> bool:
+def set_best_price_all_for(game_id: int) -> bool:
     offers = my_offers_for(game_id)
     return set_offers_best_price(offers) if offers else None
 

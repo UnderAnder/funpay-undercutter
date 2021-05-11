@@ -17,7 +17,7 @@ def main():
         db.write_bulk('server', servers)
     if args.ra:
         core.update_offers_for(game)
-        core.all_my_offers_best_price_for(game.id)
+        core.set_best_price_all_for(game.id)
     else:
         cli.main_menu()
 
