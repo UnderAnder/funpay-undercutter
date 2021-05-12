@@ -12,9 +12,7 @@ sess = Session()
 def check_records_filled(table: str, related: tuple = None, session: Session = sess) -> bool:
     stmt = f'select * from {table} where {related[0]}={related[1]}' if related else f'select * from {table}'
     result = session.execute(stmt).first()
-    if not result:
-        return False
-    return True
+    return bool(result)
 
 
 def write_bulk(type_, list_: List[dict], session: Session = sess) -> None:
