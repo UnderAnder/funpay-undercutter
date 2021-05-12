@@ -15,7 +15,7 @@ def main():
     if not db.check_records_filled('Server', ('game_id', game.id)):
         servers = parser.get_servers_for(game)
         db.write_bulk('server', servers)
-    if args.ra:
+    if args.a:
         core.update_offers_for(game)
         core.set_best_price_all_for(game.id)
     else:
