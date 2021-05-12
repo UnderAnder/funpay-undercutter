@@ -6,7 +6,7 @@ from funpay_client.models import Offer, Game
 
 
 def set_offers_best_price(offers: list[Offer]) -> bool:
-    change_flag = False
+    change_count = 0
     undercut = 10
     for offer in offers:
         curr_best_offer = db.get_best_offer_for(offer.server_id, offer.side_id)
@@ -20,8 +20,9 @@ def set_offers_best_price(offers: list[Offer]) -> bool:
             print(f'Skip for {offer}:', 'The best offer is less than minimal price', sep='\n')
             continue
         offer.price = curr_best_offer.price - undercut
-        change_flag = True
-    return parser.save_values_for(offers) if change_flag else False
+        change_count += 1
+    print('Updated', change_count, 'offers')
+    return parser.save_values_for(offers) if change_count > 0 else False
 
 
 def set_best_price_all_for(game_id: int) -> bool:
