@@ -15,13 +15,13 @@ with open('requirements.txt') as f:
 
 
 setup(
-    name='funpay-client',
-    version='v0.1',
+    name='funpay-undercutter',
+    version='0.1',
     install_requires=REQUIRES,
     packages=find_packages(where='src'),
     package_dir={'': 'src'},
-    url='https://github.com/UnderAnder/funpay-client',
+    url='https://github.com/UnderAnder/funpay-undercutter',
     license='GPLv3',
     author='UnderAnder',
-    description='Client for funpay.ru',
+    description='Undercut game currency offers at https://funpay.ru',
 )
