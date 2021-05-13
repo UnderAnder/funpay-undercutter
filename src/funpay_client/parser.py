@@ -124,6 +124,26 @@ def get_user_name() -> Optional[str]:
     return user_name.text
 
 
+def calc_commission(form: BeautifulSoup) -> float:
+    items = form.find_all('div', class_='tc-item')
+    first_item = None
+    for item in items:
+        tmp = item.find('input', class_='form-control price')
+        if tmp.get('value') != '':
+            first_item = item
+            break
+    if not first_item:
+        return False
+    try:
+        price_field = first_item.find('input', class_='form-control price')
+        price = price_field.get('value')
+        price_with_commission = first_item.find('span', class_='js-chip-calc-min').text.split()[0]
+    except ValueError:
+        return False
+    commission = 100 * (float(price_with_commission) - float(price)) / abs(float(price_with_commission))
+    return commission
+
+
 def save_values_for(offers: list[Offer]) -> bool:
     trade_url = f'{offers[0].game.chips_url}trade'
     cookie = utils.get_cookie()
@@ -134,18 +154,19 @@ def save_values_for(offers: list[Offer]) -> bool:
     req = connect_to(trade_url, cookie)
     soup = BeautifulSoup(req.content, 'lxml')
     form = soup.find('form', class_='form-ajax-simple')
+    commission = calc_commission(form)
     fields = form.find_all('input')
     # save previous values in form
     form_data = dict((field.get('name'), 'on' if field.has_attr('checked') else field.get('value')) for field in fields)
     for offer in offers:
         form_data[f'offers[{offer.server_id}][{offer.side_id}][active]'] = 'on'
         form_data[f'offers[{offer.server_id}][{offer.side_id}][amount]'] = offer.amount
-        form_data[f'offers[{offer.server_id}][{offer.side_id}][price]'] = \
-            utils.price_without_commission(offer.price)/1000
+        form_data[f'offers[{offer.server_id}][{offer.side_id}][price]'] = offer.price_without_commission(commission)/1000
 
     post = session.post(form['action'], data=form_data, headers=headers)
     if post:
         print('New values successfully saved')
+        print(f'Funpay commission: {round(commission)}%')
     else:
         print('Something went wrong, the new values are not saved', f'status code: {post.status_code}')
     return bool(post)

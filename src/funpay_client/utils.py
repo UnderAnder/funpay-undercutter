@@ -31,10 +31,6 @@ def get_cookie() -> Optional[dict[str, Optional[str]]]:
     return None
 
 
-def price_without_commission(price: int) -> int:
-    return int(price - price * 0.19)
-
-
 def isfloat(value) -> bool:
     try:
         float(value)

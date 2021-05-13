@@ -8,7 +8,6 @@ def get_args() -> argparse.Namespace:
     parse = argparse.ArgumentParser(description='Funpay funpay_client')
     parse.add_argument('game', type=str, default='World of Warcraft RU, EU', nargs='?', metavar='Game name',
                        help='Name with region in double quotes. Default: "World of Warcraft RU, EU"')
-    parse.add_argument('commission', type=int, default=19, nargs='?', metavar='Funpay commission')
     parse.add_argument('-a', action='store_true', default=False,
                        help='Automatic undercutting of all offers for a specified game , without interactive mode')
     return parse.parse_args()
@@ -90,7 +89,6 @@ def edit_offer(offer: models.Offer) -> bool:
     if utils.isfloat(price):
         save_price = int(float(price) * 1000)
         offer.price = save_price
-        print('Price without commission:', utils.price_without_commission(save_price))
     else:
         print('Wrong value, should be like 1.23' if price else f'Price: {offer.price / 1000}')
     amount = input('Amount (leave blank to save old price): ')
