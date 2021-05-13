@@ -2,7 +2,7 @@ import os
 import sys
 from typing import Optional
 
-from funpay_client import db
+from funpay_undercutter import db
 
 
 def setup_cookie() -> tuple:

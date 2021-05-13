@@ -1,11 +1,11 @@
 import argparse
 from typing import Optional
 
-from funpay_client import parser, db, models, utils, core
+from funpay_undercutter import parser, db, models, utils, core
 
 
 def get_args() -> argparse.Namespace:
-    parse = argparse.ArgumentParser(description='Funpay funpay_client')
+    parse = argparse.ArgumentParser(description='Funpay funpay_undercutter')
     parse.add_argument('game', type=str, default='World of Warcraft RU, EU', nargs='?', metavar='Game name',
                        help='Name with region in double quotes. Default: "World of Warcraft RU, EU"')
     parse.add_argument('-a', action='store_true', default=False,

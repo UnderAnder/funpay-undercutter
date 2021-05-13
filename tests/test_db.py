@@ -1,8 +1,8 @@
 import pytest
 from sqlalchemy import select
 
-import funpay_client.db as db
-import funpay_client.models as models
+import funpay_undercutter.db as db
+import funpay_undercutter.models as models
 
 
 def test_database(dataset):

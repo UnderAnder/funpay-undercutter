@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-import funpay_client.models as models
+import funpay_undercutter.models as models
 
 
 @pytest.fixture(scope='function')

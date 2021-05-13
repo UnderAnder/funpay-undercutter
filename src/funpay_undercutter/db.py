@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy import select, delete
 from sqlalchemy.orm import sessionmaker
 
-from funpay_client.models import engine, Game, Server, Offer
+from funpay_undercutter.models import engine, Game, Server, Offer
 
 Session = sessionmaker(engine, future=True)
 sess = Session()

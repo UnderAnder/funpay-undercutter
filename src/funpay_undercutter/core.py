@@ -1,8 +1,8 @@
 from statistics import mean
 from typing import Optional
 
-from funpay_client import db, parser
-from funpay_client.models import Offer, Game
+from funpay_undercutter import db, parser
+from funpay_undercutter.models import Offer, Game
 
 
 def set_offers_best_price(offers: list[Offer]) -> bool:

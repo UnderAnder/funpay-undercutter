@@ -1,4 +1,4 @@
-from funpay_client import parser, db, cli, core, utils
+from funpay_undercutter import parser, db, cli, core, utils
 
 
 def main():

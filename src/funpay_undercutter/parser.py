@@ -7,8 +7,8 @@ import requests
 from requests import adapters
 from urllib3 import poolmanager
 from bs4 import BeautifulSoup
-from funpay_client import utils
-from funpay_client.models import Offer, Game
+from funpay_undercutter import utils
+from funpay_undercutter.models import Offer, Game
 
 FUNPAY_URL = "https://funpay.ru/"
 HEADERS = {
