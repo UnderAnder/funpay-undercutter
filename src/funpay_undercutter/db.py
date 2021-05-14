@@ -1,5 +1,3 @@
-from typing import List
-
 from sqlalchemy import select, delete
 from sqlalchemy.orm import sessionmaker
 
@@ -15,7 +13,7 @@ def check_records_filled(table: str, related: tuple = None, session: Session = s
     return bool(result)
 
 
-def write_bulk(type_, list_: List[dict], session: Session = sess) -> None:
+def write_bulk(type_, list_: list[dict], session: Session = sess) -> None:
     if type_ == 'game':
         objects = [Game(**el) for el in list_]
     elif type_ == 'server':
@@ -38,12 +36,12 @@ def get_server_by_name(name: str, game_id: int, session: Session = sess) -> Serv
     return session.execute(stmt).scalar()
 
 
-def get_offers_by_server(server_id: int, session: Session = sess) -> List[Offer]:
+def get_offers_by_server(server_id: int, session: Session = sess) -> list[Offer]:
     stmt = select(Offer).filter_by(server_id=server_id)
     return session.execute(stmt).scalars().all()
 
 
-def get_offers_for(user_name: str, game_id: int = None, session: Session = sess) -> List[Offer]:
+def get_offers_for(user_name: str, game_id: int = None, session: Session = sess) -> list[Offer]:
     if game_id:
         stmt = select(Offer).filter_by(game_id=game_id, seller_name=user_name)
     else:
