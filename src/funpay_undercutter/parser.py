@@ -111,8 +111,13 @@ def get_user_name() -> Optional[str]:
     soup = get_parsed_page(FUNPAY_URL, auth=True)
     if not soup:
         print("Error: can't get user name, check your cookie")
-    user_name = soup.find('div', class_='user-link-name')
-    return user_name.text
+        return None
+    try:
+        user_name = soup.find('div', class_='user-link-name').text
+    except (KeyError, AttributeError) as e:
+        print('Err:', e)
+        return None
+    return user_name
 
 
 def calc_commission(form: Union[Tag, NavigableString]) -> float:
