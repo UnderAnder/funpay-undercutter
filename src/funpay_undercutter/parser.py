@@ -126,17 +126,12 @@ def get_user_name() -> Optional[str]:
 
 def calc_commission(form: BeautifulSoup) -> float:
     items = form.find_all('div', class_='tc-item')
-    first_item = None
-    for item in items:
-        tmp = item.find('input', class_='form-control price')
-        if tmp.get('value') != '':
-            first_item = item
-            break
+    first_item = next(filter(lambda x: x.find('input', class_='form-control price')['value'] != '', items), None)
     if not first_item:
+        print("It is impossible to calculate the commission, you must have at least one active offer")
         return False
     try:
-        price_field = first_item.find('input', class_='form-control price')
-        price = price_field.get('value')
+        price = first_item.find('input', class_='form-control price')['value']
         price_with_commission = first_item.find('span', class_='js-chip-calc-min').text.split()[0]
     except ValueError:
         return False
@@ -161,7 +156,7 @@ def save_values_for(offers: list[Offer]) -> bool:
     for offer in offers:
         form_data[f'offers[{offer.server_id}][{offer.side_id}][active]'] = 'on'
         form_data[f'offers[{offer.server_id}][{offer.side_id}][amount]'] = offer.amount
-        form_data[f'offers[{offer.server_id}][{offer.side_id}][price]'] = offer.price_without_commission(commission)/1000
+        form_data[f'offers[{offer.server_id}][{offer.side_id}][price]'] = offer.price_for_save(commission)
 
     post = session.post(form['action'], data=form_data, headers=headers)
     if post:

@@ -84,8 +84,8 @@ class Offer(Base):
         return f'{self.seller_name: <18} {round(float(self.price) / 1000, 3): <5}₽ {self.amount: <10} ' \
                f'{self.server.name: <20} {self.side_name: <8} {self.game.name: <8}'
 
-    def price_without_commission(self, commission: float) -> int:
-        return int(self.price - self.price * commission / 100)
+    def price_for_save(self, commission: float) -> int:
+        return (self.price - self.price * commission / 100)/1000
 
 
 Base.metadata.create_all(engine)
