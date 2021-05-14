@@ -1,9 +1,12 @@
+from pathlib import Path
+
 from sqlalchemy import Integer, Column, String, Boolean, create_engine, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
+app_folder = Path(__file__).parent
 Base = declarative_base()
-engine = create_engine('sqlite+pysqlite:///../../app.db', future=True)
+engine = create_engine(f'sqlite+pysqlite:////{app_folder}/app.db', future=True)
 
 
 class Game(Base):
