@@ -8,6 +8,9 @@ sess = Session()
 
 
 def check_records_filled(table: str, related: tuple = None, session: Session = sess) -> bool:
+    allowed = ('game', 'server', 'offer')
+    if table.lower() not in allowed:
+        raise ValueError('Table', table, 'not exist')
     stmt = f'select * from {table} where {related[0]}={related[1]}' if related else f'select * from {table}'
     result = session.execute(stmt).first()
     return bool(result)
