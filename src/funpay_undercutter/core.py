@@ -21,16 +21,22 @@ def set_offers_best_price(offers: list[Offer]) -> bool:
     change_count = 0
     undercut = 10
     for offer in offers:
-        curr_best_offer = db.get_best_offer_for(offer.server_id, offer.side_id)
+        print(offer)
+        lowest_offers = iter(db.get_best_offers_for(offer.server_id, offer.side_id))
+        curr_best_offer = next(lowest_offers, None)
         if not curr_best_offer:
-            print(f'Skip for {offer}:', 'The best offer not found! Please set the price manually', sep='\n')
+            print('\t[SKIP] The best offer not found! Please set the price manually')
             continue
-        if offer is curr_best_offer:
-            print(f'Skip for {offer}:', 'Already the best offer', sep='\n')
+        elif offer is curr_best_offer:
+            print('\t[SKIP] Already the best offer')
             continue
-        if curr_best_offer.price < min_price_rules(offer):
-            print(f'Skip for {offer}:', 'The best offer is less than minimal price', sep='\n')
-            continue
+        elif curr_best_offer.price < min_price_rules(offer):
+            print('\tThe best offer is less than minimal price')
+            curr_best_offer = next(lowest_offers, None)
+            if not curr_best_offer:
+                continue
+            print('\tUndercutting second place')
+        print('\tUndercutting price:', curr_best_offer.price)
         offer.price = curr_best_offer.price - undercut
         change_count += 1
     print('Updated', change_count, 'offers')

@@ -57,11 +57,11 @@ def drop_old_offers_for(game_id: int, session: Session = sess) -> None:
     session.commit()
 
 
-def get_best_offer_for(server_id: int, side_id: int, session: Session = sess) -> Offer:
-    stmt = select(Offer).filter_by(server_id=server_id, side_id=side_id, online=1).order_by(Offer.price).limit(1)
-    return session.execute(stmt).scalar()
+def get_best_offers_for(server_id: int, side_id: int, n: int = 5, session: Session = sess) -> list[Offer]:
+    stmt = select(Offer).filter_by(server_id=server_id, side_id=side_id, online=1).order_by(Offer.price).limit(n)
+    return session.execute(stmt).scalars().all()
 
 
-def get_n_lowest_price_for(server_id: int, side_id: int, n: int, session: Session = sess) -> list[int]:
+def get_n_lowest_price_for(server_id: int, side_id: int, n: int = 5, session: Session = sess) -> list[int]:
     stmt = select(Offer.price).filter_by(server_id=server_id, side_id=side_id, online=1).order_by(Offer.price).limit(n)
     return session.execute(stmt).scalars().all()

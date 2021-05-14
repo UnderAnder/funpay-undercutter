@@ -96,19 +96,19 @@ def test_write_bulk(dataset):
 def test_get_best_offer_for(dataset):
     best_offer = models.Offer(id=3, game_id=1, server_id=20, seller_name='Charles Dodgeson',
                           side_id=2, price=150, amount=0, online=0)
-    get_best_offer = db.get_best_offer_for(20, 2, dataset)
+    get_best_offer = db.get_best_offers_for(20, 2, dataset)
     if best_offer != get_best_offer:
         pytest.xfail('not equal')
     assert best_offer == get_best_offer
 
     best_offer = models.Offer(id=4, game_id=2, server_id=111, seller_name='Charles Dodgeson',
                           side_id=1, price=120, amount=5000, online=1)
-    get_best_offer = db.get_best_offer_for(111, 1, dataset)
+    get_best_offer = db.get_best_offers_for(111, 1, dataset)
     if best_offer != get_best_offer:
         pytest.xfail('not equal')
     assert best_offer == get_best_offer
 
-    get_best_offer = db.get_best_offer_for(404, 1, dataset)
+    get_best_offer = db.get_best_offers_for(404, 1, dataset)
 
     if best_offer == get_best_offer:
         pytest.xfail('equal')
