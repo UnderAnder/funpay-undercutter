@@ -154,7 +154,7 @@ def send_post(trade_url, form_url, form_data):
     headers = HEADERS
     headers['referer'] = trade_url
     headers['cookie'] = f'PHPSESSID={cookie["phpsessid"]}; golden_key={cookie["golden"]};'
-    post = session.post(form_url, data=form_data, headers=headers)
+    post = session.post(form_url, data=form_data, headers=headers, timeout=10)
     print('New values successfully saved' if post else f'Err {post.status_code}, the new values are not saved')
     return bool(post)
 
@@ -178,7 +178,7 @@ def connect_to(target: str = None, cookie: dict = None) -> requests.Response:
     for n in range(tries):
         try:
             print('Get data from', target)
-            req = session.get(target, headers=headers)
+            req = session.get(target, headers=headers, timeout=10)
             req.raise_for_status()
         except requests.exceptions.RequestException as err:
             print('Connection error!', err)
