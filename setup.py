@@ -24,4 +24,8 @@ setup(
     license='GPLv3',
     author='UnderAnder',
     description='Undercut game currency offers at https://funpay.ru',
+    entry_points={
+        'console_scripts':
+            ['funpay-undercutter = funpay_undercutter.main:main']
+    }
 )
