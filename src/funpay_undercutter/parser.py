@@ -1,12 +1,12 @@
 import ssl
 from functools import cache
 from time import sleep
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import requests
 from requests import adapters
 from urllib3 import poolmanager
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag, NavigableString
 from funpay_undercutter import utils
 from funpay_undercutter.models import Offer, Game
 
@@ -47,10 +47,7 @@ session.mount('https://', TLSAdapter())
 
 def get_games() -> List[dict]:
     result = list()
-
-    print(f'Get games list from {FUNPAY_URL}')
-    req = connect_to(FUNPAY_URL)
-    soup = BeautifulSoup(req.content, 'lxml')
+    soup = get_parsed_page(FUNPAY_URL, auth=False)
     game_items = soup.find_all('div', class_='promo-game-item')
     for item in game_items:
         titles = item.find_all('div', class_='game-title')
@@ -68,8 +65,7 @@ def get_games() -> List[dict]:
 def get_servers_for(game: Game) -> List[dict]:
     result = list()
     tmp = list()
-    req = connect_to(game.chips_url)
-    soup = BeautifulSoup(req.content, 'lxml')
+    soup = get_parsed_page(game.chips_url, auth=False)
     offers = soup.find_all('a', class_='tc-item')
     for offer in offers:
         server_id = offer["data-server"]
@@ -83,8 +79,7 @@ def get_servers_for(game: Game) -> List[dict]:
 
 def get_offers_for(game: Game) -> List[dict]:
     result = list()
-    req = connect_to(game.chips_url)
-    soup = BeautifulSoup(req.content, 'lxml')
+    soup = get_parsed_page(game.chips_url, auth=False)
     offers = soup.find_all('a', class_='tc-item')
     for offer in offers:
         href = offer['href'].split('=')[1].split('-')  # href like https://funpay.ru/chips/offer?id=109054-22-24-159-0
@@ -113,18 +108,14 @@ def get_offers_for(game: Game) -> List[dict]:
 
 @cache
 def get_user_name() -> Optional[str]:
-    cookie = utils.get_cookie()
-    if not cookie:
-        return None
-    req = connect_to(FUNPAY_URL, cookie)
-    soup = BeautifulSoup(req.content, 'lxml')
-    user_name = soup.find('div', class_='user-link-name')
-    if not user_name:
+    soup = get_parsed_page(FUNPAY_URL, auth=True)
+    if not soup:
         print("Error: can't get user name, check your cookie")
+    user_name = soup.find('div', class_='user-link-name')
     return user_name.text
 
 
-def calc_commission(form: BeautifulSoup) -> float:
+def calc_commission(form: Union[Tag, NavigableString]) -> float:
     items = form.find_all('div', class_='tc-item')
     first_item = next(filter(lambda x: x.find('input', class_='form-control price')['value'] != '', items), None)
     if not first_item:
@@ -140,14 +131,14 @@ def calc_commission(form: BeautifulSoup) -> float:
 
 
 def save_values_for(offers: list[Offer]) -> bool:
-    trade_url = f'{offers[0].game.chips_url}trade'
     cookie = utils.get_cookie()
+    trade_url = f'{offers[0].game.chips_url}trade'
     headers = HEADERS
     headers['referer'] = trade_url
     headers['cookie'] = f'PHPSESSID={cookie["phpsessid"]}; golden_key={cookie["golden"]};'
-
-    req = connect_to(trade_url, cookie)
-    soup = BeautifulSoup(req.content, 'lxml')
+    soup = get_parsed_page(trade_url, auth=True)
+    if not soup:
+        return False
     form = soup.find('form', class_='form-ajax-simple')
     commission = calc_commission(form)
     fields = form.find_all('input')
@@ -165,6 +156,17 @@ def save_values_for(offers: list[Offer]) -> bool:
     else:
         print('Something went wrong, the new values are not saved', f'status code: {post.status_code}')
     return bool(post)
+
+
+def get_parsed_page(url: str, auth: bool = False) -> Union[bool, BeautifulSoup]:
+    cookie = None
+    if auth:
+        cookie = utils.get_cookie()
+        if not cookie:
+            return False
+    req = connect_to(url, cookie)
+    soup = BeautifulSoup(req.content, 'lxml')
+    return soup
 
 
 def connect_to(target: str = None, cookie: dict = None) -> requests.Response:
