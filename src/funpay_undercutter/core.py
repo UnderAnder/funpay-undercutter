@@ -36,7 +36,7 @@ def set_offers_best_price(offers: list[Offer]) -> bool:
             if not curr_best_offer:
                 continue
             print('\tUndercutting second place')
-        print('\tUndercutting price:', curr_best_offer.price)
+        print('\tUndercutting price:', curr_best_offer.price/1000)
         offer.price = curr_best_offer.price - undercut
         change_count += 1
     print('Updated', change_count, 'offers')
