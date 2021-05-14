@@ -5,6 +5,18 @@ from funpay_undercutter import db, parser
 from funpay_undercutter.models import Offer, Game
 
 
+def check_games() -> None:
+    if not db.check_records_filled('Game'):
+        games = parser.get_games()
+        db.write_bulk('game', games)
+
+
+def check_servers(game: Game) -> None:
+    if not db.check_records_filled('Server', ('game_id', game.id)):
+        servers = parser.get_servers_for(game)
+        db.write_bulk('server', servers)
+
+
 def set_offers_best_price(offers: list[Offer]) -> bool:
     change_count = 0
     undercut = 10
