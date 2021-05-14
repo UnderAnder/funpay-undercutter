@@ -131,16 +131,13 @@ def calc_commission(form: Union[Tag, NavigableString]) -> float:
 
 
 def save_values_for(offers: list[Offer]) -> bool:
-    cookie = utils.get_cookie()
     trade_url = f'{offers[0].game.chips_url}trade'
-    headers = HEADERS
-    headers['referer'] = trade_url
-    headers['cookie'] = f'PHPSESSID={cookie["phpsessid"]}; golden_key={cookie["golden"]};'
     soup = get_parsed_page(trade_url, auth=True)
     if not soup:
         return False
     form = soup.find('form', class_='form-ajax-simple')
     commission = calc_commission(form)
+    print(f'Funpay commission: {round(commission)}%')
     fields = form.find_all('input')
     # save previous values in form
     form_data = dict((field.get('name'), 'on' if field.has_attr('checked') else field.get('value')) for field in fields)
@@ -148,13 +145,17 @@ def save_values_for(offers: list[Offer]) -> bool:
         form_data[f'offers[{offer.server_id}][{offer.side_id}][active]'] = 'on'
         form_data[f'offers[{offer.server_id}][{offer.side_id}][amount]'] = offer.amount
         form_data[f'offers[{offer.server_id}][{offer.side_id}][price]'] = offer.price_for_save(commission)
+    form_url = form['action']
+    return send_post(trade_url, form_url, form_data)
 
-    post = session.post(form['action'], data=form_data, headers=headers)
-    if post:
-        print('New values successfully saved')
-        print(f'Funpay commission: {round(commission)}%')
-    else:
-        print('Something went wrong, the new values are not saved', f'status code: {post.status_code}')
+
+def send_post(trade_url, form_url, form_data):
+    cookie = utils.get_cookie()
+    headers = HEADERS
+    headers['referer'] = trade_url
+    headers['cookie'] = f'PHPSESSID={cookie["phpsessid"]}; golden_key={cookie["golden"]};'
+    post = session.post(form_url, data=form_data, headers=headers)
+    print('New values successfully saved' if post else f'Err {post.status_code}, the new values are not saved')
     return bool(post)
 
 
