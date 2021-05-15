@@ -32,6 +32,9 @@ def set_offers_best_price(offers: list[Offer]) -> bool:
             curr_best_offer = next(lowest_offers, None)
             if not curr_best_offer or offer.price == curr_best_offer.price - undercut:
                 continue
+            elif offer.price * 2 < curr_best_offer.price:
+                print('[SKIP] The next offer is twice the price! Please set the price manually')
+                continue
         elif curr_best_offer.price < min_price_rules(offer):
             print('The best offer is less than minimal price')
             curr_best_offer = next(lowest_offers, None)
